@@ -6,10 +6,11 @@ from flask_cors import CORS
 
 app = create_app()
 
-if __name__ == '__main__':
-    with app.app_context():
-        init_db()
+# This ensures the database is initialized when running with gunicorn
+with app.app_context():
+    init_db()
 
+if __name__ == '__main__':
     debug = config.DEBUG
     logger.info('Application started')
     app.run(host='0.0.0.0', port=config.PORT, debug=debug)
