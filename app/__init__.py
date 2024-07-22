@@ -10,6 +10,9 @@ def create_app(config_class=Config):
 
     logger.info("Initializing Flask application")
 
+    # Setup CORS
+    CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for now
+
     from .routes import main
     app.register_blueprint(main)
     logger.info("Registered main blueprint")

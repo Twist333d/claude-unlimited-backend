@@ -10,9 +10,6 @@ if __name__ == '__main__':
     with app.app_context():
         init_db()
 
-    # setup CORS
-    CORS(app, resources={r"/*": {"origins": config.CORS_ORIGINS}})
-
     debug = config.DEBUG
     logger.info('Application started')
     app.run(host='0.0.0.0', port=config.PORT, debug=debug)

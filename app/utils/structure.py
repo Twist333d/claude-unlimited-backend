@@ -5,9 +5,9 @@ def generate_structure(root_dir, output_file, include_patterns=None, important_p
     if include_patterns is None:
         include_patterns = ['*.js', '*.jsx', '*.ts', '*.tsx', '*.html', '*.css', '*.scss', '*.json', '*.py']
     if important_patterns is None:
-        important_patterns = ['README*', 'package.json', 'webpack.config.*', '.gitignore', '.env*']
+        important_patterns = ['README*', 'package.json', 'webpack.config.*', '.gitignore', '.env*', 'Procfile']
     if exclude_dirs is None:
-        exclude_dirs = {'node_modules', '.git', '.idea'}
+        exclude_dirs = {'node_modules', '.git', '.idea', '__pycache__'}
 
     def matches_patterns(file, patterns):
         return any(fnmatch.fnmatch(file, pattern) for pattern in patterns)
@@ -21,7 +21,7 @@ def generate_structure(root_dir, output_file, include_patterns=None, important_p
             level = root.replace(root_dir, '').count(os.sep)
             indent = ' ' * 4 * level
             relevant_files = [file for file in files if matches_patterns(file, include_patterns) or matches_patterns(file, important_patterns)]
-            if relevant_files:
+            if relevant_files or level == 0:  # Always include root directory
                 f.write(f'{indent}{os.path.basename(root)}/\n')
                 subindent = ' ' * 4 * (level + 1)
                 for file in relevant_files:
@@ -29,6 +29,6 @@ def generate_structure(root_dir, output_file, include_patterns=None, important_p
 
 if __name__ == '__main__':
     project_root = '.'  # Current directory or specify your project directory
-    output_file = '../../project_structure.txt'
+    output_file = './utils/project_structure.txt'
     generate_structure(project_root, output_file)
     print(f'Project structure has been written to {output_file}')
