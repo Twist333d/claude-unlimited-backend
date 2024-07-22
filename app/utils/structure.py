@@ -29,6 +29,6 @@ def generate_structure(root_dir, output_file, include_patterns=None, important_p
 
 if __name__ == '__main__':
     project_root = '.'  # Current directory or specify your project directory
-    output_file = '../../../project_structure.txt'
+    output_file = '../../project_structure.txt'
     generate_structure(project_root, output_file)
     print(f'Project structure has been written to {output_file}')

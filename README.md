@@ -1,98 +1,80 @@
-# Unleashed Claude: Unlimited Conversations with Claude AI
+markdownCopy# Claude Unlimited Backend
 
-## Overview
+This is the backend service for Claude Unlimited, an AI-powered chat application using Anthropic's Claude-3.5-Sonnet model.
 
-Unleashed Claude is a web application that provides unlimited conversations with Anthropic's Claude AI, bypassing the limitations of the web interface. It offers real-time token usage tracking, cost estimation, and a user-friendly chat interface.
-
-## Features
-
-- Unlimited messaging with Claude AI
-- Real-time token usage tracking
-- Cost estimation for API usage
-- Conversation history and retrieval
-- User-friendly chat interface mimicking Claude's UI
-- File upload capability
-- Syntax highlighting and Markdown support
-- Custom instructions support
-
-## Tech Stack
-
-- Backend: Flask (Python)
-- Frontend: React
-- Database: SQLite
-- API: Anthropic's Claude API
-
-## Prerequisites
-
-- Python 3.7+
-- Node.js 14+
-- Anthropic API key
-
-## Installation
+## Project Structure
+claude-unlimited-backend/
+├── app/
+│   ├── services/
+│   │   ├── anthropic_service.py
+│   │   └── chat_service.py
+│   ├── utils/
+│   │   ├── database.py
+│   │   ├── logger.py
+│   │   └── token_counter.py
+│   ├── config.py
+│   ├── routes.py
+│   └── init.py
+├── app.py
+├── .env
+├── .gitignore
+├── Procfile
+├── requirements.txt
+└── README.md
+Copy
+## Setup
 
 1. Clone the repository:
-   ```
-   git clone https://github.com/your-username/unleashed-claude.git
-   cd unleashed-claude
-   ```
+git clone https://github.com/yourusername/claude-unlimited-backend.git
+cd claude-unlimited-backend
+Copy
+2. Create a virtual environment:
+python -m venv venv
+source venv/bin/activate  # On Windows, use venv\Scripts\activate
+Copy
+3. Install dependencies:
+pip install -r requirements.txt
+Copy
+4. Set up environment variables:
+Create a `.env` file in the root directory and add:
+ANTHROPIC_API_KEY=your_api_key_here
+FLASK_APP=app.py
+FLASK_DEBUG=True
+DATABASE_URL=sqlite:///chat_history.db
+Copy
+5. Initialize the database:
+flask db upgrade
+Copy
+6. Run the application:
+flask run
+Copy
+## Deployment to Heroku
 
-2. Set up the backend:
-   ```
-   cd backend
-   python -m venv venv
-   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-   pip install -r requirements.txt
-   ```
+1. Create a new Heroku app:
+heroku create claude-unlimited-backend
+Copy
+2. Set environment variables:
+heroku config:set ANTHROPIC_API_KEY=your_api_key_here
+heroku config:set FLASK_APP=app.py
+heroku config:set FLASK_DEBUG=False
+Copy
+3. Deploy the application:
+git push heroku main
+Copy
+4. Run database migrations:
+heroku run flask db upgrade
+Copy
+## API Endpoints
 
-3. Set up the frontend:
-   ```
-   cd ../frontend
-   npm install
-   ```
+- `POST /chat`: Send a message to Claude and receive a response.
+- `GET /conversations`: Retrieve a list of all conversations.
+- `GET /conversations/<id>/messages`: Retrieve messages for a specific conversation.
+- `GET /usage`: Get usage statistics.
 
-4. Create a `.env` file in the `backend/app` directory and add your Anthropic API key:
-   ```
-   ANTHROPIC_API_KEY=your_api_key_here
-   ```
+For detailed API documentation, refer to the `routes.py` file.
 
-## Running the Application
+## Learn More
 
-1. Start the backend server:
-   ```
-   cd backend
-   python -m app.run
-   ```
-
-2. In a new terminal, start the frontend development server:
-   ```
-   cd frontend
-   npm start
-   ```
-
-3. Open your browser and navigate to `http://localhost:3000` to use the application.
-
-Alternatively, you can use the `run_app.py` script to start both the backend and frontend simultaneously:
-
-```
-python run_app.py
-```
-
-## Usage
-
-1. Start a new conversation or select an existing one from the sidebar.
-2. Type your message in the input box and press Enter or click the send button.
-3. View Claude's response and continue the conversation.
-4. Check the usage statistics in the right sidebar to monitor token usage and costs.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-This project is licensed under the MIT License.
-
-## Acknowledgements
-
-- Anthropic for providing the Claude AI API
-- The Flask and React communities for their excellent frameworks and documentation
+To learn more about the technologies used in this project, refer to:
+- [Flask Documentation](https://flask.palletsprojects.com/)
+- [Anthropic API Documentation](https://www.anthropic.com/product)

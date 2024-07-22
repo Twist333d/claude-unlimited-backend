@@ -1,8 +1,8 @@
 from flask import Blueprint, request, jsonify
 from .services.chat_service import process_chat_request
-from .utils.database import get_usage_stats, create_conversation, save_message, get_conversations, get_conversation_messages
+from .utils.database import get_usage_stats, create_conversation, save_message, get_conversation_messages
 from .utils.logger import logger
-from backend.app.utils.database import get_conversations_with_details
+from app.utils.database import get_conversations_with_details
 
 
 main = Blueprint('main', __name__)
