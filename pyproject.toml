@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "Claude Unleashed"
+version = "0.1.0"
+description = "An API-based implementation of Claude chat."
+authors = ["Alexander Zuev <azuev@outlook.com>"]
+readme = "README.md"
+package-mode = false # disable package mode
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^3.0.3"
+python-dotenv = "^1.0.1"
+requests = "^2.32.3"
+flask-cors = "^4.0.1"
+tiktoken = "^0.7.0"
+anthropic = "^0.30.0"
+colorlog = "^6.8.2"
+psutil = "^6.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
