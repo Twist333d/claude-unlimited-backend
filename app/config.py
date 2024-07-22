@@ -14,6 +14,9 @@ class Config:
     MAX_HISTORY_TOKENS = 10000  # 5% of Claude 3 Sonnet's context window
     PORT = int(os.getenv('PORT', 5001))
 
+    # Setup CORS
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
+
     # Use DEBUG instead of FLASK_ENV
     DEBUG = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
 
