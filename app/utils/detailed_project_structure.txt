@@ -1,7 +1,0 @@
-./
-  __init__.py - Empty file
-  database.py - import sqlite3
-  logger.py - import logging
-  structure.py - import os
-  token_counter.py - import tiktoken
-
