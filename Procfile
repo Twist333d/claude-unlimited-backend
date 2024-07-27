@@ -1,1 +1,1 @@
-web: python backend/app/run.py
+web: gunicorn --timeout 120 --log-level=info --log-file=- wsgi:application
