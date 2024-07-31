@@ -1,49 +1,39 @@
-import sqlite3
-from supabase import create_client
 from flask import current_app
 from .logger import logger
+from functools import wraps
+import uuid
 
-def get_db_connection():
-    logger.debug(f"Connecting to database: {current_app.config['DATABASE_NAME']}")
+supabase = current_app.supabase
 
-    # connect to supabase
-    return create_client(current_app.config['SUPABASE_URL'], current_app.config['SUPABASE_ANON_KEY'])
 
-    #conn = sqlite3.connect(current_app.config['DATABASE_NAME'])
-    #conn.row_factory = sqlite3.Row
-    #return conn
+# create decorator to use for each database operation
+def supabase_operation(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except Exception as e:
+            logger.error(f"Supabase operation error in {f.__name__}: {str(e)}")
+            raise
+    return decorated_function
 
-def init_db():
-    logger.info("Initializing database")
-    conn = get_db_connection()
-    conn.execute('''CREATE TABLE IF NOT EXISTS conversations
-                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    conn.execute('''CREATE TABLE IF NOT EXISTS messages
-                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                     conversation_id INTEGER,
-                     role TEXT,
-                     content TEXT,
-                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                     FOREIGN KEY (conversation_id) REFERENCES conversations(id))''')
-    conn.execute('''CREATE TABLE IF NOT EXISTS usage_stats
-                    (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                     conversation_id INTEGER,
-                     input_tokens INTEGER,
-                     output_tokens INTEGER,
-                     total_tokens INTEGER,
-                     input_cost REAL,
-                     output_cost REAL,
-                     total_cost REAL,
-                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                     FOREIGN KEY (conversation_id) REFERENCES conversations(id))''')
-    conn.commit()
-    conn.close()
-    logger.info("Database initialized successfully")
+# Conversation create, update, delete, archive
+def create_conversation(user_id: str, title: str = "New Conversation"):
+    logger.info(f"Creating new conversation for user {user_id}")
+    data = supabase.table('conversations').insert({
+        "id" : str(uuid.uuid4()),
+        "user_id" : user_id,
+        "title" : title,
+        "created_at" :
+    })
 
+# Messages create
+# API keys create, update, delete
+# custom instructions create, update
+#
 def create_conversation():
     logger.info("Creating new conversation")
-    conn = get_db_connection()
+    conn = create_supabase_client()
     cur = conn.cursor()
     cur.execute('INSERT INTO conversations DEFAULT VALUES')
     conversation_id = cur.lastrowid
@@ -55,7 +45,7 @@ def create_conversation():
 def save_message(conversation_id, role, content):
     logger.info(f"Saving message for conversation ID: {conversation_id}")
     role = 'user' if role in ['user', 'human'] else 'assistant'
-    conn = get_db_connection()
+    conn = create_supabase_client()
     conn.execute('INSERT INTO messages (conversation_id, role, content) VALUES (?, ?, ?)',
                  (conversation_id, role, content))
     conn.commit()
@@ -66,7 +56,7 @@ def save_usage_stats(conversation_id, input_tokens, output_tokens, input_cost, o
     logger.info(f"Saving usage stats for conversation ID: {conversation_id}")
     total_tokens = input_tokens + output_tokens
     total_cost = input_cost + output_cost
-    conn = get_db_connection()
+    conn = create_supabase_client()
     conn.execute('''INSERT INTO usage_stats 
                     (conversation_id, input_tokens, output_tokens, total_tokens, 
                      input_cost, output_cost, total_cost) 
@@ -79,7 +69,7 @@ def save_usage_stats(conversation_id, input_tokens, output_tokens, input_cost, o
 
 def get_conversations():
     logger.info("Fetching all conversations")
-    conn = get_db_connection()
+    conn = create_supabase_client()
     cur = conn.cursor()
     cur.execute('''SELECT c.id, c.created_at, m.content AS first_message
                    FROM conversations c
@@ -92,7 +82,7 @@ def get_conversations():
     return [dict(conv) for conv in conversations]
 
 def get_conversations_with_details():
-    conn = get_db_connection()
+    conn = create_supabase_client()
     cursor = conn.cursor()
     cursor.execute("""
         SELECT 
@@ -122,7 +112,7 @@ def get_conversations_with_details():
 
 def get_conversation_messages(conversation_id, limit=50):
     logger.info(f"Fetching messages for conversation ID: {conversation_id}")
-    conn = get_db_connection()
+    conn = create_supabase_client()
     cur = conn.cursor()
     cur.execute('SELECT role, content FROM messages WHERE conversation_id = ? ORDER BY timestamp DESC LIMIT ?', (conversation_id, limit))
     messages = cur.fetchall()
@@ -135,7 +125,7 @@ def get_usage_stats(conversation_id=None):
         logger.info(f"Fetching usage stats for conversation ID: {conversation_id}")
     else:
         logger.info("Fetching overall usage stats")
-    conn = get_db_connection()
+    conn = create_supabase_client()
     cur = conn.cursor()
     if conversation_id:
         cur.execute('''SELECT SUM(input_tokens) as total_input, 
