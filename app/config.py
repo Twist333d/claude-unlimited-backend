@@ -14,6 +14,10 @@ class Config:
     MAX_HISTORY_TOKENS = 10000  # 5% of Claude 3 Sonnet's context window
     PORT = int(os.getenv('PORT', 5001))
 
+    # Get SUPABASE env
+    SUPABASE_URL = os.getenv('SUPABASE_URL')
+    SUPABASE_ANON_KEY=os.getenv('SUPABASE_ANON_KEY')
+
     # Setup CORS
     CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
 

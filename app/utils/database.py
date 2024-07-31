@@ -1,12 +1,17 @@
 import sqlite3
+from supabase import create_client
 from flask import current_app
 from .logger import logger
 
 def get_db_connection():
     logger.debug(f"Connecting to database: {current_app.config['DATABASE_NAME']}")
-    conn = sqlite3.connect(current_app.config['DATABASE_NAME'])
-    conn.row_factory = sqlite3.Row
-    return conn
+
+    # connect to supabase
+    return create_client(current_app.config['SUPABASE_URL'], current_app.config['SUPABASE_ANON_KEY'])
+
+    #conn = sqlite3.connect(current_app.config['DATABASE_NAME'])
+    #conn.row_factory = sqlite3.Row
+    #return conn
 
 def init_db():
     logger.info("Initializing database")
