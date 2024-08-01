@@ -1,0 +1,4 @@
+- Review the data model again
+- Review what routes do I have and what are their requirements. Re-factor or simplify the routes.
+- Review and re-factor and simplify the database operations. There should be no super complex ones.
+- Review and re-factor the chat_service. Break down in multiple functions, if necessary.

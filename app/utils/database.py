@@ -4,7 +4,8 @@ from functools import wraps
 import uuid
 from datetime import datetime, timezone, date
 
-supabase = current_app.supabase
+def get_supabase():
+    return current_app.supabase
 
 # Create decorator function to call each data operation
 def supabase_operation(f):
@@ -21,6 +22,7 @@ def supabase_operation(f):
 @supabase_operation
 def create_conversation(user_id: str, title: str = "New Conversation"):
     logger.info(f"Creating new conversation for user {user_id}")
+    supabase = get_supabase()
     conversation_id = str(uuid.uuid4())
     data, error = supabase.table('conversations').insert({
         "id": conversation_id,
@@ -38,6 +40,7 @@ def create_conversation(user_id: str, title: str = "New Conversation"):
 @supabase_operation
 def archive_conversation(conversation_id: str, archive: bool = True):
     logger.info(f"{'Archiving' if archive else 'Unarchiving'} conversation with id: {conversation_id}")
+    supabase = get_supabase()
 
     data, error = supabase.table('conversations') \
         .update({"is_archived": archive}) \
@@ -58,6 +61,7 @@ from datetime import datetime, timezone
 @supabase_operation
 def update_conversation_last_message(conversation_id: str):
     logger.info(f"Updating last_message_at for conversation: {conversation_id}")
+    supabase = get_supabase()
 
     current_time = datetime.now(timezone.utc)
 
@@ -77,6 +81,7 @@ def update_conversation_last_message(conversation_id: str):
 @supabase_operation
 def update_conversation_metadata(conversation_id: str, title: str = None):
     logger.info(f"Updating metadata for conversation: {conversation_id}")
+    supabase = get_supabase()
 
     update_data = {}
     if title is not None:
@@ -103,6 +108,8 @@ VALID_ROLES =['user', 'assistant', 'system']
 
 @supabase_operation
 def create_message(conversation_id: str, role: str, content: str, tokens: int = None):
+    supabase = get_supabase()
+
     if role not in VALID_ROLES:
         raise ValueError(f"Invalid role. Must be one of {VALID_ROLES}")
 
@@ -130,6 +137,7 @@ def create_message(conversation_id: str, role: str, content: str, tokens: int = 
 @supabase_operation
 def get_message(message_id: str):
     logger.info(f"Fetching message with id: {message_id}")
+    supabase = get_supabase()
 
     data, error = supabase.table('messages').select('*').eq('id', message_id).execute()
 
@@ -143,6 +151,7 @@ def get_message(message_id: str):
 @supabase_operation
 def get_conversation_messages(conversation_id, limit=50):
     logger.info(f"Fetching messages for conversation ID: {conversation_id}")
+    supabase = get_supabase()
     data, error = supabase.table('messages') \
         .select('role', 'content') \
         .eq('conversation_id', conversation_id) \
@@ -162,6 +171,7 @@ def get_conversation_messages(conversation_id, limit=50):
 def save_usage_stats(user_id: str, conversation_id: str, total_tokens: int, total_cost: float):
     logger.info(f"Saving usage stats for user {user_id}, conversation {conversation_id}")
 
+    supabase = get_supabase()
     current_date = date.today().isoformat()
     current_time = datetime.now(timezone.utc).isoformat()
 
@@ -206,6 +216,7 @@ def save_usage_stats(user_id: str, conversation_id: str, total_tokens: int, tota
 @supabase_operation
 def get_usage_stats(user_id: str = None, conversation_id: str = None, start_date: str = None, end_date: str = None):
     logger.info(f"Fetching usage stats for user {user_id}, conversation {conversation_id}")
+    supabase = get_supabase()
 
     query = supabase.table('usage_stats').select('date, total_tokens, total_cost')
 
@@ -253,6 +264,7 @@ def update_usage_stats_after_message(user_id: str, conversation_id: str, tokens:
 @supabase_operation
 def get_conversations():
     logger.info("Fetching all conversations")
+    supabase = get_supabase()
 
     data, error = supabase.table('conversations') \
         .select('id, created_at, messages!inner(content)') \
@@ -278,15 +290,18 @@ def get_conversations():
 
 
 @supabase_operation
-def get_conversations_with_details():
-    data, error = supabase.table('conversations') \
-        .select('''
-            id, 
-            created_at,
-            messages!inner(content, created_at)
-        ''') \
-        .order('created_at', desc=True) \
-        .execute()
+def get_conversations_with_details(user_id=None):
+    supabase = get_supabase()
+    query = supabase.table('conversations').select('''
+        id, 
+        created_at,
+        messages!inner(content, created_at)
+    ''').order('created_at', desc=True)
+
+    if user_id:
+        query = query.eq('user_id', user_id)
+
+    data, error = query.execute()
 
     if error:
         logger.error(f"Error fetching conversations with details: {error}")
@@ -309,6 +324,7 @@ def get_conversations_with_details():
 @supabase_operation
 def get_conversation_messages(conversation_id, limit=50):
     logger.info(f"Fetching messages for conversation ID: {conversation_id}")
+    supabase = get_supabase()
 
     data, error = supabase.table('messages') \
         .select('role, content') \
@@ -328,6 +344,7 @@ def get_conversation_messages(conversation_id, limit=50):
 
 @supabase_operation
 def get_usage_stats(conversation_id=None):
+    supabase = get_supabase()
     if conversation_id:
         logger.info(f"Fetching usage stats for conversation ID: {conversation_id}")
     else:
@@ -363,6 +380,7 @@ def get_usage_stats(conversation_id=None):
 
 @supabase_operation
 def get_or_create_user_settings(user_id: str):
+    supabase = get_supabase()
     data, error = supabase.table('user_settings').select('*').eq('user_id', user_id).execute()
 
     if error:
@@ -387,6 +405,7 @@ def get_or_create_user_settings(user_id: str):
 
 @supabase_operation
 def update_user_settings(user_id: str, custom_instructions: str = None, preferred_model: str = None):
+    supabase = get_supabase()
     update_data = {
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
