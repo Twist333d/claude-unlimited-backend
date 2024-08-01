@@ -18,11 +18,13 @@ def process_chat_request(user_id, conversation_id, messages):
     assistant_message = response['content']
     input_tokens = response['input_tokens']
     output_tokens = response['output_tokens']
+    total_tokens = input_tokens + output_tokens
 
     input_cost = (input_tokens / 1000) * INPUT_COST_PER_1K
     output_cost = (output_tokens / 1000) * OUTPUT_COST_PER_1K
+    total_cost = input_cost + output_cost
 
-    save_usage_stats(conversation_id, input_tokens, output_tokens, input_cost, output_cost)
+    save_usage_stats(user_id, conversation_id, total_tokens, total_cost)
 
     logger.info(f"Chat request processed for conversation {conversation_id}. "
                      f"Input tokens: {input_tokens}, Output tokens: {output_tokens}, "

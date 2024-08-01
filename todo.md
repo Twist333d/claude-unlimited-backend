@@ -1,4 +1,6 @@
-- Review the data model again
-- Review what routes do I have and what are their requirements. Re-factor or simplify the routes.
-- Review and re-factor and simplify the database operations. There should be no super complex ones.
-- Review and re-factor the chat_service. Break down in multiple functions, if necessary.
+- Review and simplify the chat_service.
+- Fix GET /usage
+- Make sure GET conversations returns in the format that frontend expects OR fix the FE.
+- Double-check POST /chat works as it should. Stores proper conversation history and returns and accepts new messages
+- VERIFY that my data model is perfect and ready.
+- Migrate the database to staging and production
