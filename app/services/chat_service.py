@@ -1,6 +1,6 @@
 from flask import current_app
 from ..services.anthropic_service import send_anthropic_request
-from ..utils.database import save_usage_stats, get_conversation_messages
+from ..utils.database import save_usage_stats, get_messages_for_conversation
 from ..utils.logger import logger
 
 INPUT_COST_PER_1K = 0.0015
@@ -10,7 +10,7 @@ OUTPUT_COST_PER_1K = 0.0060
 def process_chat_request(user_id, conversation_id, messages):
     logger.info(f"Processing chat request for conversation {conversation_id}")
 
-    conversation_messages = get_conversation_messages(conversation_id)
+    conversation_messages = get_messages_for_conversation(conversation_id)
     all_messages = prepare_messages(conversation_messages, messages)
 
     response = send_anthropic_request(all_messages)

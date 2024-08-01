@@ -5,8 +5,11 @@ from .utils.logger import logger
 from supabase import create_client, Client
 import os
 
+# Global Supabase client
+supabase_client: Client = None
 
 def create_app(config_class=Config):
+    global supabase_client
     app = Flask(__name__)
     app.config.from_object(config_class)
     CORS(app)
@@ -18,10 +21,16 @@ def create_app(config_class=Config):
     try:
         url = app.config['SUPABASE_URL']
         key = app.config['SUPABASE_KEY']
-        app.supabase = create_client(url, key)
+        supabase_client = create_client(url, key)
         logger.info(f"Successfully connected to Supabase at {url}")
+        app.supabase = supabase_client
+
+        # Test the connection
+        test_response = app.supabase.table('conversations').select('id').limit(1).execute()
+        print("Test Supabase query response: ", test_response.data[0]['id'])
     except Exception as e:
         logger.error(f"Failed to connect to Supabase: {str(e)}")
+
 
 
     # Setup CORS
@@ -38,7 +47,7 @@ def create_app(config_class=Config):
         try:
             # Perform a simple query
             result = app.supabase.table('conversations').select('id').limit(1).execute()
-            return f"Database connection successful. Result: {result.data}", 200
+            return f"Database connection successful. Result: {result.data[0]['id']}", 200
         except Exception as e:
             return f"Database connection failed: {str(e)}", 500
 

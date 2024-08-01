@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 from .services.chat_service import process_chat_request
 from .utils.database import (
     get_usage_stats, create_conversation, create_message,
-    get_conversation_messages, get_conversations_with_details,
+    get_messages_for_conversation, get_user_conversations,
     update_conversation_last_message, archive_conversation,
     get_or_create_user_settings, update_user_settings
 )
@@ -12,25 +12,25 @@ from .utils.logger import logger
 main = Blueprint('main', __name__)
 
 @main.route('/conversations', methods=['GET'])
-def list_conversations():
+def list_user_conversations():
     logger.info("Fetching list of conversations.")
     user_id = get_user_id_from_request()  # Implement this function to get user_id from the request
-    conversations = get_conversations_with_details(user_id)
+    conversations = get_user_conversations(user_id)
     return jsonify(conversations)
 
 @main.route('/conversations', methods=['POST'])
-def start_conversation():
-    logger.info("Starting new conversation")
+def create_new_user_conversation():
+    logger.info("Creating a new conversation")
     user_id = get_user_id_from_request()
     title = request.json.get('title', "New Conversation")
     conversation_id = create_conversation(user_id, title)
     return jsonify({"conversation_id": conversation_id})
 
 @main.route('/conversations/<uuid:conversation_id>/messages', methods=['GET'])
-def get_messages(conversation_id):
+def get_conversation_messages(conversation_id):
     logger.info(f"Fetching messages for conversation {conversation_id}")
-    limit = request.args.get('limit', 100, type=int)
-    messages = get_conversation_messages(str(conversation_id), limit)
+    limit = request.args.get('limit', 50, type=int)
+    messages = get_messages_for_conversation(str(conversation_id), limit)
     return jsonify(messages)
 
 @main.route('/conversations/<uuid:conversation_id>/archive', methods=['POST'])
@@ -111,4 +111,5 @@ def get_user_id_from_request():
     # Implement this function to extract the user_id from the request
     # This could involve checking an authentication token or session
     # For now, we'll just return a placeholder
-    return "bd8c9573-2424-4da4-99b2-35d548dae7da"
+    uuid = "634998e3-7687-4266-a004-8cb2f35c42ac"
+    return uuid
