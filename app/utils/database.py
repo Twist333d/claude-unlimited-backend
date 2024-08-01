@@ -2,11 +2,11 @@ from flask import current_app
 from .logger import logger
 from functools import wraps
 import uuid
+from datetime import datetime, timezone, date
 
 supabase = current_app.supabase
 
-
-# create decorator to use for each database operation
+# Create decorator function to call each data operation
 def supabase_operation(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -18,136 +18,387 @@ def supabase_operation(f):
     return decorated_function
 
 # Conversation create, update, delete, archive
+@supabase_operation
 def create_conversation(user_id: str, title: str = "New Conversation"):
     logger.info(f"Creating new conversation for user {user_id}")
-    data = supabase.table('conversations').insert({
-        "id" : str(uuid.uuid4()),
-        "user_id" : user_id,
+    conversation_id = str(uuid.uuid4())
+    data, error = supabase.table('conversations').insert({
+        "id": conversation_id,
+        "user_id": user_id,
         "title" : title,
-        "created_at" :
-    })
+    }).execute()
 
-# Messages create
-# API keys create, update, delete
-# custom instructions create, update
-#
-def create_conversation():
-    logger.info("Creating new conversation")
-    conn = create_supabase_client()
-    cur = conn.cursor()
-    cur.execute('INSERT INTO conversations DEFAULT VALUES')
-    conversation_id = cur.lastrowid
-    conn.commit()
-    conn.close()
-    logger.info(f"New conversation created with ID: {conversation_id}")
-    return conversation_id
+    if error:
+        logger.error(f"Error creating conversation: {error}")
+        raise Exception(f"Error creating conversation: {error}")
 
-def save_message(conversation_id, role, content):
-    logger.info(f"Saving message for conversation ID: {conversation_id}")
-    role = 'user' if role in ['user', 'human'] else 'assistant'
-    conn = create_supabase_client()
-    conn.execute('INSERT INTO messages (conversation_id, role, content) VALUES (?, ?, ?)',
-                 (conversation_id, role, content))
-    conn.commit()
-    conn.close()
-    logger.info(f"Message saved successfully for conversation ID: {conversation_id}")
+    return data[0]['id']
 
-def save_usage_stats(conversation_id, input_tokens, output_tokens, input_cost, output_cost):
-    logger.info(f"Saving usage stats for conversation ID: {conversation_id}")
-    total_tokens = input_tokens + output_tokens
-    total_cost = input_cost + output_cost
-    conn = create_supabase_client()
-    conn.execute('''INSERT INTO usage_stats 
-                    (conversation_id, input_tokens, output_tokens, total_tokens, 
-                     input_cost, output_cost, total_cost) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                 (conversation_id, input_tokens, output_tokens, total_tokens,
-                  input_cost, output_cost, total_cost))
-    conn.commit()
-    conn.close()
-    logger.info(f"Usage stats saved successfully for conversation ID: {conversation_id}")
 
-def get_conversations():
-    logger.info("Fetching all conversations")
-    conn = create_supabase_client()
-    cur = conn.cursor()
-    cur.execute('''SELECT c.id, c.created_at, m.content AS first_message
-                   FROM conversations c
-                   LEFT JOIN messages m ON c.id = m.conversation_id
-                   AND m.id = (SELECT MIN(id) FROM messages WHERE conversation_id = c.id)
-                   ORDER BY c.created_at DESC''')
-    conversations = cur.fetchall()
-    conn.close()
-    logger.info(f"Retrieved {len(conversations)} conversations")
-    return [dict(conv) for conv in conversations]
+@supabase_operation
+def archive_conversation(conversation_id: str, archive: bool = True):
+    logger.info(f"{'Archiving' if archive else 'Unarchiving'} conversation with id: {conversation_id}")
 
-def get_conversations_with_details():
-    conn = create_supabase_client()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT 
-            c.id, 
-            c.created_at,
-            first_message.content AS first_message,
-            last_message.content AS last_message,
-            last_message.timestamp AS last_message_time
-        FROM conversations c
-        LEFT JOIN messages first_message ON c.id = first_message.conversation_id
-        AND first_message.id = (
-            SELECT MIN(id)
-            FROM messages
-            WHERE conversation_id = c.id
-        )
-        LEFT JOIN messages last_message ON c.id = last_message.conversation_id
-        AND last_message.id = (
-            SELECT MAX(id)
-            FROM messages
-            WHERE conversation_id = c.id
-        )
-        ORDER BY last_message.timestamp DESC
-    """)
-    conversations = [dict(row) for row in cursor.fetchall()]
-    conn.close()
-    return conversations
+    data, error = supabase.table('conversations') \
+        .update({"is_archived": archive}) \
+        .eq("id", conversation_id) \
+        .execute()
 
+    if error:
+        logger.error(f"Error {'archiving' if archive else 'unarchiving'} conversation: {error}")
+        raise Exception(f"Error {'archiving' if archive else 'unarchiving'} conversation: {error}")
+
+    logger.info(f"Conversation {'archived' if archive else 'unarchived'} successfully: {conversation_id}")
+    return data[0] if data else None
+# example usage archivd_converation = archive_conversation("conversation_id"
+
+from datetime import datetime, timezone
+
+# Call this function when a new message arrives as we will neede it for Frontend.
+@supabase_operation
+def update_conversation_last_message(conversation_id: str):
+    logger.info(f"Updating last_message_at for conversation: {conversation_id}")
+
+    current_time = datetime.now(timezone.utc)
+
+    data, error = supabase.table('conversations') \
+        .update({"last_message_at": current_time.isoformat()}) \
+        .eq("id", conversation_id) \
+        .execute()
+
+    if error:
+        logger.error(f"Error updating last_message_at: {error}")
+        raise Exception(f"Error updating last_message_at: {error}")
+
+    logger.info(f"last_message_at updated successfully for conversation: {conversation_id}")
+    return data[0] if data else None
+
+# Helper function to update other metadata, if needed
+@supabase_operation
+def update_conversation_metadata(conversation_id: str, title: str = None):
+    logger.info(f"Updating metadata for conversation: {conversation_id}")
+
+    update_data = {}
+    if title is not None:
+        update_data["title"] = title
+
+    if not update_data:
+        logger.info(f"No metadata to update for conversation: {conversation_id}")
+        return None
+
+    data, error = supabase.table('conversations') \
+        .update(update_data) \
+        .eq("id", conversation_id) \
+        .execute()
+
+    if error:
+        logger.error(f"Error updating conversation metadata: {error}")
+        raise Exception(f"Error updating conversation metadata: {error}")
+
+    logger.info(f"Metadata updated successfully for conversation: {conversation_id}")
+    return data[0] if data else None
+
+
+VALID_ROLES =['user', 'assistant', 'system']
+
+@supabase_operation
+def create_message(conversation_id: str, role: str, content: str, tokens: int = None):
+    if role not in VALID_ROLES:
+        raise ValueError(f"Invalid role. Must be one of {VALID_ROLES}")
+
+    logger.info(f"Creating new message for conversation: {conversation_id}")
+
+    message_data = {
+        "id": str(uuid.uuid4()),
+        "conversation_id": conversation_id,
+        "role": role,
+        "content": content,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "tokens": tokens,
+    }
+
+    data, error = supabase.table('messages').insert(message_data).execute()
+
+    if error:
+        logger.error(f"Error creating message: {error}")
+        raise Exception(f"Error creating message: {error}")
+
+    logger.info(f"Message created successfully with id: {data[0]['id']}")
+    return data[0]
+
+
+@supabase_operation
+def get_message(message_id: str):
+    logger.info(f"Fetching message with id: {message_id}")
+
+    data, error = supabase.table('messages').select('*').eq('id', message_id).execute()
+
+    if error:
+        logger.error(f"Error fetching message: {error}")
+        raise Exception(f"Error fetching message: {error}")
+
+    return data[0] if data else None
+
+
+@supabase_operation
 def get_conversation_messages(conversation_id, limit=50):
     logger.info(f"Fetching messages for conversation ID: {conversation_id}")
-    conn = create_supabase_client()
-    cur = conn.cursor()
-    cur.execute('SELECT role, content FROM messages WHERE conversation_id = ? ORDER BY timestamp DESC LIMIT ?', (conversation_id, limit))
-    messages = cur.fetchall()
-    conn.close()
-    logger.info(f"Retrieved {len(messages)} messages for conversation ID: {conversation_id}")
-    return [dict(msg) for msg in reversed(messages)]
+    data, error = supabase.table('messages') \
+        .select('role', 'content') \
+        .eq('conversation_id', conversation_id) \
+        .order('created_at') \
+        .limit(limit) \
+        .execute()
 
+    if error:
+        logger.error(f"Error fetching messages: {error}")
+        raise Exception(f"Error fetching messages: {error}")
+
+    logger.info(f"Retrieved {len(data)} messages for conversation ID: {conversation_id}")
+    return [dict(msg) for msg in data]
+
+
+@supabase_operation
+def save_usage_stats(user_id: str, conversation_id: str, total_tokens: int, total_cost: float):
+    logger.info(f"Saving usage stats for user {user_id}, conversation {conversation_id}")
+
+    current_date = date.today().isoformat()
+    current_time = datetime.now(timezone.utc).isoformat()
+
+    # Check if there's an existing record for this user, conversation, and date
+    data, error = supabase.table('usage_stats').select('id, total_tokens, total_cost') \
+        .eq('user_id', user_id) \
+        .eq('conversation_id', conversation_id) \
+        .eq('date', current_date) \
+        .execute()
+
+    if error:
+        logger.error(f"Error checking existing usage stats: {error}")
+        raise Exception(f"Error checking existing usage stats: {error}")
+
+    if data:
+        # Update existing record
+        existing_record = data[0]
+        updated_data = {
+            "total_tokens": existing_record['total_tokens'] + total_tokens,
+            "total_cost": existing_record['total_cost'] + total_cost
+        }
+        data, error = supabase.table('usage_stats').update(updated_data) \
+            .eq('id', existing_record['id']) \
+            .execute()
+    else:
+        # Insert new record
+        data, error = supabase.table('usage_stats').insert({
+            "user_id": user_id,
+            "conversation_id": conversation_id,
+            "date": current_date,
+            "total_tokens": total_tokens,
+            "total_cost": total_cost,
+        }).execute()
+
+    if error:
+        logger.error(f"Error saving usage stats: {error}")
+        raise Exception(f"Error saving usage stats: {error}")
+
+    logger.info(f"Usage stats saved successfully for user {user_id}, conversation {conversation_id}")
+
+
+@supabase_operation
+def get_usage_stats(user_id: str = None, conversation_id: str = None, start_date: str = None, end_date: str = None):
+    logger.info(f"Fetching usage stats for user {user_id}, conversation {conversation_id}")
+
+    query = supabase.table('usage_stats').select('date, total_tokens, total_cost')
+
+    if user_id:
+        query = query.eq('user_id', user_id)
+    if conversation_id:
+        query = query.eq('conversation_id', conversation_id)
+    if start_date:
+        query = query.gte('date', start_date)
+    if end_date:
+        query = query.lte('date', end_date)
+
+    data, error = query.execute()
+
+    if error:
+        logger.error(f"Error fetching usage stats: {error}")
+        raise Exception(f"Error fetching usage stats: {error}")
+
+    if not data:
+        logger.warning("No usage stats found")
+        return None
+
+    # Aggregate results
+    result = {
+        "total_tokens": sum(item['total_tokens'] for item in data),
+        "total_cost": sum(item['total_cost'] for item in data),
+        "daily_stats": [{
+            "date": item['date'],
+            "total_tokens": item['total_tokens'],
+            "total_cost": item['total_cost']
+        } for item in data]
+    }
+
+    logger.info("Usage stats retrieved successfully")
+    return result
+
+
+def update_usage_stats_after_message(user_id: str, conversation_id: str, tokens: int, cost: float):
+    """
+    Call this function after processing each message (both input and output).
+    """
+    save_usage_stats(user_id, conversation_id, tokens, cost)
+
+
+@supabase_operation
+def get_conversations():
+    logger.info("Fetching all conversations")
+
+    data, error = supabase.table('conversations') \
+        .select('id, created_at, messages!inner(content)') \
+        .order('created_at', desc=True) \
+        .limit(1, foreign_table='messages') \
+        .execute()
+
+    if error:
+        logger.error(f"Error fetching conversations: {error}")
+        raise Exception(f"Error fetching conversations: {error}")
+
+    conversations = [
+        {
+            "id": conv['id'],
+            "created_at": conv['created_at'],
+            "first_message": conv['messages'][0]['content'] if conv['messages'] else None
+        }
+        for conv in data
+    ]
+
+    logger.info(f"Retrieved {len(conversations)} conversations")
+    return conversations
+
+
+@supabase_operation
+def get_conversations_with_details():
+    data, error = supabase.table('conversations') \
+        .select('''
+            id, 
+            created_at,
+            messages!inner(content, created_at)
+        ''') \
+        .order('created_at', desc=True) \
+        .execute()
+
+    if error:
+        logger.error(f"Error fetching conversations with details: {error}")
+        raise Exception(f"Error fetching conversations with details: {error}")
+
+    conversations = []
+    for conv in data:
+        messages = sorted(conv['messages'], key=lambda m: m['created_at'])
+        conversations.append({
+            "id": conv['id'],
+            "created_at": conv['created_at'],
+            "first_message": messages[0]['content'] if messages else None,
+            "last_message": messages[-1]['content'] if messages else None,
+            "last_message_time": messages[-1]['created_at'] if messages else None
+        })
+
+    return conversations
+
+
+@supabase_operation
+def get_conversation_messages(conversation_id, limit=50):
+    logger.info(f"Fetching messages for conversation ID: {conversation_id}")
+
+    data, error = supabase.table('messages') \
+        .select('role, content') \
+        .eq('conversation_id', conversation_id) \
+        .order('created_at', desc=True) \
+        .limit(limit) \
+        .execute()
+
+    if error:
+        logger.error(f"Error fetching messages: {error}")
+        raise Exception(f"Error fetching messages: {error}")
+
+    messages = [dict(msg) for msg in reversed(data)]
+    logger.info(f"Retrieved {len(messages)} messages for conversation ID: {conversation_id}")
+    return messages
+
+
+@supabase_operation
 def get_usage_stats(conversation_id=None):
     if conversation_id:
         logger.info(f"Fetching usage stats for conversation ID: {conversation_id}")
     else:
         logger.info("Fetching overall usage stats")
-    conn = create_supabase_client()
-    cur = conn.cursor()
+
+    query = supabase.table('usage_stats').select('''
+        sum(input_tokens) as total_input,
+        sum(output_tokens) as total_output,
+        sum(total_tokens) as total_tokens,
+        sum(input_cost) as total_input_cost,
+        sum(output_cost) as total_output_cost,
+        sum(total_cost) as total_cost
+    ''')
+
     if conversation_id:
-        cur.execute('''SELECT SUM(input_tokens) as total_input, 
-                              SUM(output_tokens) as total_output,
-                              SUM(total_tokens) as total_tokens,
-                              SUM(input_cost) as total_input_cost,
-                              SUM(output_cost) as total_output_cost,
-                              SUM(total_cost) as total_cost
-                       FROM usage_stats
-                       WHERE conversation_id = ?''', (conversation_id,))
-    else:
-        cur.execute('''SELECT SUM(input_tokens) as total_input, 
-                              SUM(output_tokens) as total_output,
-                              SUM(total_tokens) as total_tokens,
-                              SUM(input_cost) as total_input_cost,
-                              SUM(output_cost) as total_output_cost,
-                              SUM(total_cost) as total_cost
-                       FROM usage_stats''')
-    result = cur.fetchone()
-    conn.close()
+        query = query.eq('conversation_id', conversation_id)
+
+    data, error = query.execute()
+
+    if error:
+        logger.error(f"Error fetching usage stats: {error}")
+        raise Exception(f"Error fetching usage stats: {error}")
+
+    result = data[0] if data else None
+
     if result:
         logger.info("Usage stats retrieved successfully")
     else:
         logger.warning("No usage stats found")
+
     return dict(result) if result else None
+
+
+@supabase_operation
+def get_or_create_user_settings(user_id: str):
+    data, error = supabase.table('user_settings').select('*').eq('user_id', user_id).execute()
+
+    if error:
+        logger.error(f"Error fetching user settings: {error}")
+        raise Exception(f"Error fetching user settings: {error}")
+
+    if not data:
+        # Create new user settings if not exist
+        data, error = supabase.table('user_settings').insert({
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }).execute()
+
+        if error:
+            logger.error(f"Error creating user settings: {error}")
+            raise Exception(f"Error creating user settings: {error}")
+
+    return data[0]
+
+
+@supabase_operation
+def update_user_settings(user_id: str, custom_instructions: str = None, preferred_model: str = None):
+    update_data = {
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    if custom_instructions is not None:
+        update_data["custom_instructions"] = custom_instructions
+    if preferred_model is not None:
+        update_data["preferred_model"] = preferred_model
+
+    data, error = supabase.table('user_settings').update(update_data).eq('user_id', user_id).execute()
+
+    if error:
+        logger.error(f"Error updating user settings: {error}")
+        raise Exception(f"Error updating user settings: {error}")
+
+    return data[0]

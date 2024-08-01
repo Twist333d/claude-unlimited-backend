@@ -5,7 +5,6 @@ from .utils.logger import logger
 from supabase import create_client, Client
 import os
 
-supabase: Client = None
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -16,11 +15,11 @@ def create_app(config_class=Config):
 
     logger.info("Initializing Supabase client")
 
-    global supabase
     try:
-        supabase = create_client(app.config['SUPABASE_URL'], app.config['SUPABASE_KEY'])
-        logger.info(f"Successfully connected to Supabase at {app.config['SUPABASE_URL']}")
-        app.supabase = supabase
+        url = app.config['SUPABASE_URL']
+        key = app.config['SUPABASE_KEY']
+        app.supabase = create_client(url, key)
+        logger.info(f"Successfully connected to Supabase at {url}")
     except Exception as e:
         logger.error(f"Failed to connect to Supabase: {str(e)}")
 
@@ -38,7 +37,7 @@ def create_app(config_class=Config):
     def test_db():
         try:
             # Perform a simple query
-            result = supabase.table('conversations').select('id').limit(1).execute()
+            result = app.supabase.table('conversations').select('id').limit(1).execute()
             return f"Database connection successful. Result: {result.data}", 200
         except Exception as e:
             return f"Database connection failed: {str(e)}", 500
