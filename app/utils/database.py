@@ -17,19 +17,30 @@ def supabase_operation(f):
             raise
     return decorated_function
 
-# Conversation create, update, delete, archive
+# CONVERSATION OPERATIONS
 @supabase_operation
 def create_conversation(user_id: str, title: str = "New Conversation"):
     logger.info(f"Creating new conversation for user {user_id}")
     conversation_id = str(uuid.uuid4())
 
-    response = supabase_client.table('conversations').insert({
-        "id": conversation_id,
-        "user_id": user_id,
-        "title" : title,
-    }).execute()
+    try:
+        response = supabase_client.table('conversations').insert({
+            "id": conversation_id,
+            "user_id": user_id,
+            "title": title,
+        }).execute()
 
-    return response[0]['id'] if response else None
+        if response.data:
+            created_conversation = response.data[0]
+            logger.info(f"Conversation created successfully: {created_conversation['id']}")
+            return created_conversation['id']
+        else:
+            logger.error("No data returned from Supabase after conversation creation")
+            return None
+
+    except Exception as e:
+        logger.error(f"Error creating conversation: {str(e)}")
+        return None
 
 @supabase_operation
 def get_user_conversations(user_id=None):
@@ -144,51 +155,47 @@ def get_message(message_id: str):
     return data[0] if data else None
 
 
-
-@supabase_operation
-def save_usage_stats(user_id: str, conversation_id: str, total_tokens: int, total_cost: float):
-    logger.info(f"Saving usage stats for user {user_id}, conversation {conversation_id}")
-
+# USAGE STATS OPERATIONS
+def increment_usage_stats(user_id, conversation_id, input_tokens, output_tokens, total_cost):
     current_date = date.today().isoformat()
     current_time = datetime.now(timezone.utc).isoformat()
 
-    # Check if there's an existing record for this user, conversation, and date
-    response = supabase_client.table('usage_stats').select('id, total_tokens, total_cost') \
+    response = supabase_client.table('usage_stats').select('id, input_tokens, output_tokens, total_cost') \
         .eq('user_id', user_id) \
         .eq('conversation_id', conversation_id) \
         .eq('date', current_date) \
         .execute()
 
-    data = response.data if hasattr(response, 'data') else response
+    data = response.data
 
     if data:
-        # Update existing record
         existing_record = data[0]
         updated_data = {
-            "total_tokens": existing_record['total_tokens'] + total_tokens,
-            "total_cost": existing_record['total_cost'] + total_cost
+            "input_tokens": existing_record['input_tokens'] + input_tokens,
+            "output_tokens": existing_record['output_tokens'] + output_tokens,
+            "total_cost": existing_record['total_cost'] + total_cost,
+            "updated_at": current_time
         }
         response = supabase_client.table('usage_stats').update(updated_data) \
             .eq('id', existing_record['id']) \
             .execute()
     else:
-        # Insert new record
         response = supabase_client.table('usage_stats').insert({
             "user_id": user_id,
             "conversation_id": conversation_id,
             "date": current_date,
-            "total_tokens": total_tokens,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
             "total_cost": total_cost,
+            "created_at": current_time,
+            "updated_at": current_time
         }).execute()
 
-    logger.info(f"Usage stats saved successfully for user {user_id}, conversation {conversation_id}")
+    return response.data[0] if response.data else None
 
 
-@supabase_operation
-def get_usage_stats(user_id: str = None, conversation_id: str = None, start_date: str = None, end_date: str = None):
-    logger.info(f"Fetching usage stats for user {user_id}, conversation {conversation_id}")
-
-    query = supabase_client.table('usage_stats').select('date, total_tokens, total_cost')
+def get_usage_stats(user_id=None, conversation_id=None, start_date=None, end_date=None):
+    query = supabase_client.table('usage_stats').select('date, input_tokens, output_tokens, total_cost')
 
     if user_id:
         query = query.eq('user_id', user_id)
@@ -200,70 +207,28 @@ def get_usage_stats(user_id: str = None, conversation_id: str = None, start_date
         query = query.lte('date', end_date)
 
     response = query.execute()
-
-    data = response.data if hasattr(response, 'data') else response
+    data = response.data
 
     if not data:
-        logger.warning("No usage stats found")
         return None
 
-    # Aggregate results
     result = {
-        "total_tokens": sum(item['total_tokens'] for item in data),
+        "total_input_tokens": sum(item['input_tokens'] for item in data),
+        "total_output_tokens": sum(item['output_tokens'] for item in data),
+        "total_tokens": sum(item['input_tokens'] + item['output_tokens'] for item in data),
         "total_cost": sum(item['total_cost'] for item in data),
         "daily_stats": [{
             "date": item['date'],
-            "total_tokens": item['total_tokens'],
+            "input_tokens": item['input_tokens'],
+            "output_tokens": item['output_tokens'],
+            "total_tokens": item['input_tokens'] + item['output_tokens'],
             "total_cost": item['total_cost']
         } for item in data]
     }
 
-    logger.info("Usage stats retrieved successfully")
     return result
 
-
-def update_usage_stats_after_message(user_id: str, conversation_id: str, tokens: int, cost: float):
-    """
-    Call this function after processing each message (both input and output).
-    """
-    save_usage_stats(user_id, conversation_id, tokens, cost)
-
-
-
-
-@supabase_operation
-def get_usage_stats(conversation_id=None):
-    if conversation_id:
-        logger.info(f"Fetching usage stats for conversation ID: {conversation_id}")
-    else:
-        logger.info("Fetching overall usage stats")
-
-    query = supabase_client.table('usage_stats').select('''
-        sum(input_tokens) as total_input,
-        sum(output_tokens) as total_output,
-        sum(total_tokens) as total_tokens,
-        sum(input_cost) as total_input_cost,
-        sum(output_cost) as total_output_cost,
-        sum(total_cost) as total_cost
-    ''')
-
-    if conversation_id:
-        query = query.eq('conversation_id', conversation_id)
-
-    response = query.execute()
-
-    data = response.data if hasattr(response, 'data') else response
-
-    result = data[0] if data else None
-
-    if result:
-        logger.info("Usage stats retrieved successfully")
-    else:
-        logger.warning("No usage stats found")
-
-    return dict(result) if result else None
-
-
+# USAGE SETTINGS OPERATIONS
 @supabase_operation
 def get_or_create_user_settings(user_id: str):
     response = supabase_client.table('user_settings').select('*').eq('user_id', user_id).execute()

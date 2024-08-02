@@ -25,11 +25,15 @@ def create_app(config_class=Config):
         logger.info(f"Successfully connected to Supabase at {url}")
         app.supabase = supabase_client
 
-        # Test the connection
-        test_response = app.supabase.table('conversations').select('id').limit(1).execute()
-        print("Test Supabase query response: ", test_response.data[0]['id'])
+        # Test the connection without relying on existing data
+        test_response = app.supabase.table('conversations').select('count').execute()
+        row_count = test_response.count
+        logger.info(f"Successfully connected to Supabase. Conversations table has {row_count} rows.")
+
     except Exception as e:
         logger.error(f"Failed to connect to Supabase: {str(e)}")
+        # You might want to raise an exception here if Supabase connection is critical for your app
+        raise RuntimeError(f"Failed to initialize Supabase: {str(e)}")
 
 
 
@@ -45,9 +49,10 @@ def create_app(config_class=Config):
     @app.route('/test_db')
     def test_db():
         try:
-            # Perform a simple query
-            result = app.supabase.table('conversations').select('id').limit(1).execute()
-            return f"Database connection successful. Result: {result.data[0]['id']}", 200
+            # Perform a simple query that doesn't rely on existing data
+            result = app.supabase.table('conversations').select('count').execute()
+            row_count = result.count
+            return f"Database connection successful. Conversations table has {row_count} rows.", 200
         except Exception as e:
             return f"Database connection failed: {str(e)}", 500
 

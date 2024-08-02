@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from .services.chat_service import process_chat_request
 from .utils.database import (
-    get_usage_stats, create_conversation, create_message,
+    increment_usage_stats, create_conversation, create_message,
     get_messages_for_conversation, get_user_conversations,
     update_conversation_last_message, archive_conversation,
     get_or_create_user_settings, update_user_settings
@@ -47,7 +47,11 @@ def chat():
     data = request.json
     user_id = get_user_id_from_request()
     conversation_id = data.get('conversation_id')
-    messages = data.get('messages', [])
+    message = data.get('message', '')
+
+    if not message:
+        logger.warning("No message to chat")
+        return jsonify({"error": "No message provided"}), 400
 
     if not conversation_id:
         logger.info("No conversation ID provided, creating a new conversation")
@@ -55,17 +59,16 @@ def chat():
     else:
         conversation_id = str(conversation_id)  # Ensure it's a string
 
-    if not messages:
-        logger.warning("No messages provided in chat request")
-        return jsonify({"error": "No messages provided"}), 400
+    if not message:
+        logger.warning("No message provided in chat request")
+        return jsonify({"error": "No message provided"}), 400
 
     try:
         # Save new user message
-        for message in messages:
-            create_message(conversation_id, 'user', message)
+        create_message(conversation_id, 'user', message)
 
         # Process the chat request
-        result = process_chat_request(user_id, conversation_id, messages)
+        result = process_chat_request(user_id, conversation_id, message)
 
         # Save the assistant's response
         create_message(conversation_id, 'assistant', result['response'])
@@ -87,7 +90,7 @@ def usage():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     try:
-        stats = get_usage_stats(user_id, conversation_id, start_date, end_date)
+        stats = increment_usage_stats(user_id, conversation_id, start_date, end_date)
         logger.info("Usage stats retrieved successfully")
         return jsonify(stats)
     except Exception as e:
@@ -111,5 +114,5 @@ def get_user_id_from_request():
     # Implement this function to extract the user_id from the request
     # This could involve checking an authentication token or session
     # For now, we'll just return a placeholder
-    uuid = "634998e3-7687-4266-a004-8cb2f35c42ac"
+    uuid = "9ac4d55a-beb5-476a-8724-9cc3eb3aee5a"
     return uuid
