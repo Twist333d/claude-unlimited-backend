@@ -4,7 +4,7 @@ from .utils.database import (
     increment_usage_stats, create_conversation, create_message,
     get_messages_for_conversation, get_user_conversations,
     update_conversation_last_message, archive_conversation,
-    get_or_create_user_settings, update_user_settings
+    get_or_create_user_settings, update_user_settings, get_usage_stats
 )
 from .utils.logger import logger
 
@@ -87,10 +87,8 @@ def usage():
     logger.info("Received usage stats request")
     user_id = get_user_id_from_request()
     conversation_id = request.args.get('conversation_id')
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
     try:
-        stats = increment_usage_stats(user_id, conversation_id, start_date, end_date)
+        stats = get_usage_stats(user_id, conversation_id)
         logger.info("Usage stats retrieved successfully")
         return jsonify(stats)
     except Exception as e:

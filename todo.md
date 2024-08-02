@@ -1,6 +1,2 @@
-- Review and simplify the chat_service.
-- Fix GET /usage
-- Make sure GET conversations returns in the format that frontend expects OR fix the FE.
-- Double-check POST /chat works as it should. Stores proper conversation history and returns and accepts new messages
-- VERIFY that my data model is perfect and ready.
+- Fix usage stats calculation (on FE and BE)
 - Migrate the database to staging and production
