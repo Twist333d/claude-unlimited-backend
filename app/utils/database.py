@@ -19,7 +19,7 @@ def supabase_operation(f):
 
 # CONVERSATION OPERATIONS
 @supabase_operation
-def create_conversation(user_id: str, title: str = "New Conversation"):
+def create_conversation(user_id: str, title: str):
     logger.info(f"Creating new conversation for user {user_id}")
     conversation_id = str(uuid.uuid4())
 
@@ -194,30 +194,30 @@ def increment_usage_stats(user_id, conversation_id, input_tokens, output_tokens,
     return response.data[0] if response.data else None
 
 
-def get_usage_stats(user_id=None, conversation_id=None, start_date=None, end_date=None):
+def get_usage_stats(user_id=None, conversation_id=None):
     query = supabase_client.table('usage_stats').select('date, input_tokens, output_tokens, total_cost')
 
-    if not (user_id or start_date or end_date) and conversation_id:
+    if conversation_id:
         query = query.eq('conversation_id', conversation_id)
+    if user_id:
+        query = query.eq('user_id', user_id)
 
     response = query.execute()
     data = response.data
 
     if not data:
-        return None
+        return {
+            "total_input_tokens": 0,
+            "total_output_tokens": 0,
+            "total_tokens": 0,
+            "total_cost": 0,
+        }
 
     result = {
         "total_input_tokens": sum(item['input_tokens'] for item in data),
         "total_output_tokens": sum(item['output_tokens'] for item in data),
         "total_tokens": sum(item['input_tokens'] + item['output_tokens'] for item in data),
         "total_cost": sum(item['total_cost'] for item in data),
-        "daily_stats": [{
-            "date": item['date'],
-            "input_tokens": item['input_tokens'],
-            "output_tokens": item['output_tokens'],
-            "total_tokens": item['input_tokens'] + item['output_tokens'],
-            "total_cost": item['total_cost']
-        } for item in data]
     }
 
     return result

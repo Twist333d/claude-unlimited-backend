@@ -11,13 +11,6 @@ from .utils.logger import logger
 
 main = Blueprint('main', __name__)
 
-@main.route('/conversations', methods=['GET'])
-def list_user_conversations():
-    logger.info("Fetching list of conversations.")
-    user_id = get_user_id_from_request()  # Implement this function to get user_id from the request
-    conversations = get_user_conversations(user_id)
-    return jsonify(conversations)
-
 @main.route('/conversations', methods=['POST'])
 def create_new_user_conversation():
     logger.info("Creating a new conversation")
@@ -25,6 +18,15 @@ def create_new_user_conversation():
     title = request.json.get('title', "New Conversation")
     conversation_id = create_conversation(user_id, title)
     return jsonify({"conversation_id": conversation_id})
+
+@main.route('/conversations', methods=['GET'])
+def list_user_conversations():
+    logger.info("Fetching list of conversations.")
+    user_id = get_user_id_from_request()  # Implement this function to get user_id from the request
+    conversations = get_user_conversations(user_id)
+    return jsonify(conversations)
+
+
 
 @main.route('/conversations/<uuid:conversation_id>/messages', methods=['GET'])
 def get_conversation_messages(conversation_id):
