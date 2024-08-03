@@ -1,5 +1,6 @@
 claude-unlimited-backend/
     .env
+    .env.example
     .env.template
     .gitignore
     Procfile
@@ -14,6 +15,7 @@ claude-unlimited-backend/
             chat_service.py
             __init__.py
         utils/
+            auth.py
             database.py
             logger.py
             __init__.py

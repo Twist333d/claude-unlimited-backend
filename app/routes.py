@@ -126,7 +126,7 @@ def generate_test_token():
     logger.info("Entering generate_test_token route")
     user_id = get_user_id_from_request()
     logger.info(f"Generating test token for user {user_id}")
-    if current_app.config['FLASK_ENV'] != 'production':
+    if current_app.config['ENV'] != 'production':
         payload = {
             'sub': user_id,  # Your test user ID
             'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)

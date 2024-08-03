@@ -2,9 +2,9 @@ import os
 import logging
 from dotenv import load_dotenv
 
-# Load .env file only in development
-if os.getenv('FLASK_ENV') != 'production':
-    load_dotenv()
+
+load_dotenv() # load the .env file
+
 
 
 class Config:
@@ -25,8 +25,12 @@ class Config:
     # Setup CORS
     CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
 
-    # Use DEBUG instead of FLASK_ENV
-    DEBUG = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    # Environment configuration
+    ENV = os.getenv('ENV', 'development') # default to production, unless there is an .env file
+    DEBUG = ENV != 'production'
+
+    # Different OS
+    OS_TYPE = os.getenv("OS_TYPE", 'PC')
 
     # Logging configuration
     LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
@@ -38,14 +42,17 @@ class Config:
         pass
 
 class DevelopmentConfig(Config):
+    ENV = 'development'
     DEBUG = True
     LOG_LEVEL = logging.DEBUG
 
 class StagingConfig(Config):
+    ENV = 'staging'
     DEBUG = True
     LOG_LEVEL = logging.DEBUG
 
 class ProductionConfig(Config):
+    ENV = 'production'
     DEBUG = False
     LOG_LEVEL = logging.INFO
 
@@ -57,5 +64,5 @@ config = {
 }
 
 def get_config():
-    flask_env = os.getenv('FLASK_ENV', 'development')
-    return config.get(flask_env, config['default'])
+    env = os.getenv('ENV', 'development')
+    return config.get(env, config['default'])
