@@ -2,6 +2,7 @@ import os
 import fnmatch
 import argparse
 from pathlib import Path
+# new
 
 
 def generate_structure(root_dir, output_file, include_patterns=None, important_patterns=None, exclude_dirs=None):
