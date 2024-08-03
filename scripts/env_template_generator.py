@@ -1,5 +1,10 @@
 import os
 from pathlib import Path
+from colorama import init, Fore, Style
+
+# Initialize colorama for Windows
+init()
+
 
 def generate_env_template():
     # Define the paths
@@ -10,7 +15,7 @@ def generate_env_template():
 
     # Check if .env file exists
     if not env_file.exists():
-        print(f"Error: {env_file} does not exist.")
+        print(f"{Fore.RED}✗ Error: .env file does not exist.{Style.RESET_ALL}")
         return
 
     # Read the .env file
@@ -31,7 +36,8 @@ def generate_env_template():
     with open(env_template_file, 'w') as f:
         f.writelines(template_lines)
 
-    print(f".env.template has been generated/updated at {env_template_file}")
+    relative_path = env_template_file.relative_to(project_root)
+    print(f"{Fore.GREEN}✓ .env.template has been generated/updated at ./{relative_path}{Style.RESET_ALL}")
 
 if __name__ == "__main__":
     generate_env_template()

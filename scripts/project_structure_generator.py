@@ -2,7 +2,10 @@ import os
 import fnmatch
 import argparse
 from pathlib import Path
+from colorama import init, Fore, Style
 
+# Init colorama
+init()
 
 
 def generate_structure(root_dir, output_file, include_patterns=None, important_patterns=None, exclude_dirs=None):
@@ -44,4 +47,6 @@ if __name__ == '__main__':
     output_file = project_root / args.output
 
     generate_structure(project_root, output_file)
-    print(f'Project structure has been written to {output_file}')
+    relative_path = output_file.relative_to(project_root)
+    print(f"{Fore.GREEN}✓ Project structure has been written to ./{relative_path}{Style.RESET_ALL}")
+
