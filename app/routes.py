@@ -11,14 +11,6 @@ from .utils.logger import logger
 
 main = Blueprint('main', __name__)
 
-@main.route('/conversations', methods=['POST'])
-def create_new_user_conversation():
-    logger.info("Creating a new conversation")
-    user_id = get_user_id_from_request()
-    title = request.json.get('title', "New Conversation")
-    conversation_id = create_conversation(user_id, title)
-    return jsonify({"conversation_id": conversation_id})
-
 @main.route('/conversations', methods=['GET'])
 def list_user_conversations():
     logger.info("Fetching list of conversations.")
@@ -55,15 +47,15 @@ def chat():
         logger.warning("No message to chat")
         return jsonify({"error": "No message provided"}), 400
 
+
     if not conversation_id:
         logger.info("No conversation ID provided, creating a new conversation")
-        conversation_id = create_conversation(user_id)
+        # Use the first 30 characters of the message as the title
+        title = message[:30] + "..." if len(message) > 30 else message
+        conversation_id = create_conversation(user_id, title)
     else:
         conversation_id = str(conversation_id)  # Ensure it's a string
 
-    if not message:
-        logger.warning("No message provided in chat request")
-        return jsonify({"error": "No message provided"}), 400
 
     try:
         # Save new user message
@@ -77,6 +69,9 @@ def chat():
 
         # Update conversation's last_message_at
         update_conversation_last_message(conversation_id)
+
+        # Add the conversation_id to the result
+        result['conversation_id'] = conversation_id
 
         logger.info("Chat request processed successfully")
         return jsonify(result)
