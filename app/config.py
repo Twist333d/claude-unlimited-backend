@@ -9,8 +9,8 @@ class Config:
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
     CLAUDE_MODEL = "claude-3-sonnet-20240229"
-    MAX_TOKENS = 8192 #increased to maximum supported tokens
-    MAX_HISTORY_TOKENS = 10000  # 5% of Claude 3 Sonnet's context window
+    MAX_TOKENS = 4096 #increased to maximum supported tokens
+    MAX_HISTORY_TOKENS = 150000  # 5% of Claude 3 Sonnet's context window
     PORT = int(os.getenv('PORT', 5001))
 
     # Get SUPABASE env
