@@ -1,0 +1,24 @@
+claude-unlimited-backend/
+    .env
+    .env.template
+    .gitignore
+    Procfile
+    README.md
+    wsgi.py
+    app/
+        config.py
+        routes.py
+        __init__.py
+        services/
+            anthropic_service.py
+            chat_service.py
+            __init__.py
+        utils/
+            database.py
+            logger.py
+            supabase testing.py
+            token_counter.py
+            __init__.py
+    scripts/
+        env_template_generator.py
+        project_structure_generator.py
