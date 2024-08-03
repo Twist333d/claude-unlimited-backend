@@ -16,8 +16,6 @@ claude-unlimited-backend/
         utils/
             database.py
             logger.py
-            supabase testing.py
-            token_counter.py
             __init__.py
     scripts/
         env_template_generator.py

@@ -1,6 +1,0 @@
-./
-    database.py
-    logger.py
-    structure.py
-    token_counter.py
-    __init__.py
