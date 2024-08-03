@@ -35,8 +35,6 @@ def create_app(config_class=Config):
         # You might want to raise an exception here if Supabase connection is critical for your app
         raise RuntimeError(f"Failed to initialize Supabase: {str(e)}")
 
-
-
     # Setup CORS
     cors_origins = os.environ.get('CORS_ORIGINS', '').split(',')
     CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for now

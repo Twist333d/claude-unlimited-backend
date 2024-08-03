@@ -19,6 +19,9 @@ class Config:
     SUPABASE_URL = os.getenv('SUPABASE_URL')
     SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 
+    # Auth
+    SUPABASE_JWT_SECRET = os.getenv('SUPABASE_JWT_SECRET')
+
     # Setup CORS
     CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
 

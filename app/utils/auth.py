@@ -4,6 +4,9 @@ import jwt
 
 
 def get_user_id_from_request():
+    if current_app.config['FLASK_ENV'] == 'development':
+        return "fbba4a13-b4bb-4b99-9118-1acec1b2d240"  # Your test user ID
+
     auth_header = request.headers.get('Authorization')
     if not auth_header:
         return None
@@ -37,5 +40,5 @@ def login_required(f):
 # For local development
 def get_test_user_id():
     if current_app.config['FLASK_ENV'] == 'development':
-        return "test-user-id"  # Replace with a real Supabase user ID for testing
+        return "fbba4a13-b4bb-4b99-9118-1acec1b2d240"  # Replace with a real Supabase user ID for testing
     return None

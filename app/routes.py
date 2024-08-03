@@ -1,3 +1,6 @@
+import datetime
+
+import jwt
 from flask import Blueprint, request, jsonify, current_app
 from .services.chat_service import process_chat_request
 from .utils.database import (
@@ -6,38 +9,48 @@ from .utils.database import (
     update_conversation_last_message, archive_conversation,
     get_or_create_user_settings, update_user_settings, get_usage_stats
 )
+from .utils.auth import login_required, get_user_id_from_request, get_test_user_id
 from .utils.logger import logger
 
 
 main = Blueprint('main', __name__)
 
 @main.route('/conversations', methods=['GET'])
+@login_required
 def list_user_conversations():
+    logger.info("Entering list_user_conversations route")
     logger.info("Fetching list of conversations.")
-    user_id = get_user_id_from_request()  # Implement this function to get user_id from the request
+    user_id = get_user_id_from_request() or get_test_user_id()
     conversations = get_user_conversations(user_id)
     return jsonify(conversations)
 
 
 
 @main.route('/conversations/<uuid:conversation_id>/messages', methods=['GET'])
+@login_required
 def get_conversation_messages(conversation_id):
     logger.info(f"Fetching messages for conversation {conversation_id}")
+    user_id = get_user_id_from_request() or get_test_user_id()
     limit = request.args.get('limit', 50, type=int)
     messages = get_messages_for_conversation(str(conversation_id), limit)
     return jsonify(messages)
 
 @main.route('/conversations/<uuid:conversation_id>/archive', methods=['POST'])
+@login_required
 def archive_conv(conversation_id):
     logger.info(f"Archiving conversation {conversation_id}")
+    user_id = get_user_id_from_request() or get_test_user_id()
     archive = request.json.get('archive', True)
     result = archive_conversation(str(conversation_id), archive)
     return jsonify(result)
 
 
 @main.route('/chat', methods=['POST'])
+@login_required
 def chat():
+    logger.info("Entering chat route")
     logger.info(f"Received chat request: {request.json}")
+    user_id = get_user_id_from_request() or get_test_user_id()
     data = request.json
     user_id = get_user_id_from_request()
     conversation_id = data.get('conversation_id')
@@ -80,6 +93,7 @@ def chat():
         return jsonify({"error": str(e)}), 500
 
 @main.route('/usage', methods=['GET'])
+@login_required
 def usage():
     logger.info("Received usage stats request")
     user_id = get_user_id_from_request()
@@ -93,6 +107,7 @@ def usage():
         return jsonify({"error": str(e)}), 500
 
 @main.route('/user/settings', methods=['GET', 'PUT'])
+@login_required
 def user_settings():
     user_id = get_user_id_from_request()
     if request.method == 'GET':
@@ -105,11 +120,17 @@ def user_settings():
         updated_settings = update_user_settings(user_id, custom_instructions, preferred_model)
         return jsonify(updated_settings)
 
-def get_user_id_from_request():
-    # Implement this function to extract the user_id from the request
-    # This could involve checking an authentication token or session
-    # For now, we'll just return a placeholder
-    uuid = "9ac4d55a-beb5-476a-8724-9cc3eb3aee5a"
-    mac_uuid = "fbba4a13-b4bb-4b99-9118-1acec1b2d240"
-    uuid = mac_uuid
-    return uuid
+
+@main.route('/generate_test_token', methods=['GET'])
+def generate_test_token():
+    logger.info("Entering generate_test_token route")
+    user_id = get_user_id_from_request()
+    logger.info(f"Generating test token for user {user_id}")
+    if current_app.config['FLASK_ENV'] != 'production':
+        payload = {
+            'sub': user_id,  # Your test user ID
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)
+        }
+        token = jwt.encode(payload, current_app.config['SUPABASE_JWT_SECRET'], algorithm='HS256')
+        return jsonify({'token': token})
+    return jsonify({'error': 'Not available in production'}), 403
