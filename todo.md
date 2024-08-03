@@ -1,2 +1,2 @@
-- Fix usage stats calculation (on FE and BE)
 - Migrate the database to staging and production
+- Increase the max tokens to 8196 for Sonnet, using headers
