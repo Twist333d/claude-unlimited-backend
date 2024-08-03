@@ -1,0 +1,2 @@
+- Fix usage stats calculation (on FE and BE)
+- Migrate the database to staging and production

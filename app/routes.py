@@ -1,70 +1,80 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from .services.chat_service import process_chat_request
-from .utils.database import get_usage_stats, create_conversation, save_message, get_conversation_messages
+from .utils.database import (
+    increment_usage_stats, create_conversation, create_message,
+    get_messages_for_conversation, get_user_conversations,
+    update_conversation_last_message, archive_conversation,
+    get_or_create_user_settings, update_user_settings, get_usage_stats
+)
 from .utils.logger import logger
-from app.utils.database import get_conversations_with_details
 
 
 main = Blueprint('main', __name__)
 
 @main.route('/conversations', methods=['GET'])
-def list_conversations():
-    logger.info("Fetching list of first and last messages")
-    conversations = get_conversations_with_details()
+def list_user_conversations():
+    logger.info("Fetching list of conversations.")
+    user_id = get_user_id_from_request()  # Implement this function to get user_id from the request
+    conversations = get_user_conversations(user_id)
     return jsonify(conversations)
 
-@main.route('/conversations', methods=['POST'])
-def start_conversation():
-    logger.info("Starting new conversation")
-    conversation_id = create_conversation()
-    return jsonify({"conversation_id": conversation_id})
 
-@main.route('/conversations/<int:conversation_id>/messages', methods=['GET'])
-def get_messages(conversation_id):
+
+@main.route('/conversations/<uuid:conversation_id>/messages', methods=['GET'])
+def get_conversation_messages(conversation_id):
     logger.info(f"Fetching messages for conversation {conversation_id}")
-    messages = get_conversation_messages(conversation_id)
+    limit = request.args.get('limit', 50, type=int)
+    messages = get_messages_for_conversation(str(conversation_id), limit)
     return jsonify(messages)
+
+@main.route('/conversations/<uuid:conversation_id>/archive', methods=['POST'])
+def archive_conv(conversation_id):
+    logger.info(f"Archiving conversation {conversation_id}")
+    archive = request.json.get('archive', True)
+    result = archive_conversation(str(conversation_id), archive)
+    return jsonify(result)
 
 
 @main.route('/chat', methods=['POST'])
 def chat():
     logger.info(f"Received chat request: {request.json}")
     data = request.json
-
+    user_id = get_user_id_from_request()
     conversation_id = data.get('conversation_id')
-    messages = data.get('messages', [])
+    message = data.get('message', '')
 
-    logger.info(f"Conversation ID: {conversation_id}, Messages: {messages}")
+    if not message:
+        logger.warning("No message to chat")
+        return jsonify({"error": "No message provided"}), 400
+
 
     if not conversation_id:
         logger.info("No conversation ID provided, creating a new conversation")
-        conversation_id = create_conversation()
+        # Use the first 30 characters of the message as the title
+        title = message[:30] + "..." if len(message) > 30 else message
+        conversation_id = create_conversation(user_id, title)
+    else:
+        conversation_id = str(conversation_id)  # Ensure it's a string
 
-    if not messages:
-        logger.warning("No messages provided in chat request")
-        return jsonify({"error": "No messages provided"}), 400
 
     try:
         # Save new user message
-        for message in messages:
-            save_message(conversation_id, 'user', message)
+        create_message(conversation_id, 'user', message)
 
-        # Process the chat request with the full conversation history
-        result = process_chat_request(conversation_id, messages)
+        # Process the chat request
+        result = process_chat_request(user_id, conversation_id, message)
 
         # Save the assistant's response
-        save_message(conversation_id, 'assistant', result['response'])
+        create_message(conversation_id, 'assistant', result['response'])
+
+        # Update conversation's last_message_at
+        update_conversation_last_message(conversation_id)
+
+        # Add the conversation_id to the result
+        result['conversation_id'] = conversation_id
 
         logger.info("Chat request processed successfully")
-        return jsonify({
-            "response": result['response'],
-            "input_tokens": result['input_tokens'],
-            "output_tokens": result['output_tokens'],
-            "total_tokens": result['total_tokens'],
-            "input_cost": result['input_cost'],
-            "output_cost": result['output_cost'],
-            "total_cost": result['total_cost']
-        })
+        return jsonify(result)
     except Exception as e:
         logger.error(f"Error in chat request: {str(e)}")
         return jsonify({"error": str(e)}), 500
@@ -72,11 +82,32 @@ def chat():
 @main.route('/usage', methods=['GET'])
 def usage():
     logger.info("Received usage stats request")
+    user_id = get_user_id_from_request()
     conversation_id = request.args.get('conversation_id')
     try:
-        stats = get_usage_stats(conversation_id)
+        stats = get_usage_stats(user_id, conversation_id)
         logger.info("Usage stats retrieved successfully")
         return jsonify(stats)
     except Exception as e:
         logger.error(f"Error retrieving usage stats: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+@main.route('/user/settings', methods=['GET', 'PUT'])
+def user_settings():
+    user_id = get_user_id_from_request()
+    if request.method == 'GET':
+        settings = get_or_create_user_settings(user_id)
+        return jsonify(settings)
+    elif request.method == 'PUT':
+        data = request.json
+        custom_instructions = data.get('custom_instructions')
+        preferred_model = data.get('preferred_model')
+        updated_settings = update_user_settings(user_id, custom_instructions, preferred_model)
+        return jsonify(updated_settings)
+
+def get_user_id_from_request():
+    # Implement this function to extract the user_id from the request
+    # This could involve checking an authentication token or session
+    # For now, we'll just return a placeholder
+    uuid = "9ac4d55a-beb5-476a-8724-9cc3eb3aee5a"
+    return uuid

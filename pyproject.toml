@@ -17,6 +17,8 @@ anthropic = "^0.30.0"
 colorlog = "^6.8.2"
 psutil = "^6.0.0"
 gunicorn = "^22.0.0"
+supabase = "^2.6.0"
+colorama = "^0.4.6"
 
 
 [build-system]
