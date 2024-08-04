@@ -75,8 +75,11 @@ jobs:
     - name: Run staging tests
       env:
         APP_ENV: staging
-        APP_BASE_URL: ${{ secrets.STAGING_URL }}
+        SUPABASE_URL: ${{ secrets.SUPABASE_STAGING_URL }}
+        SUPABASE_KEY: ${{ secrets.SUPABASE_STAGING_KEY }}
+        SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_STAGING_JWT_TOKEN }}
         TEST_USER_ID: ${{ secrets.STAGING_TEST_USER_ID }}
         TEST_CONVERSATION_ID: ${{ secrets.STAGING_TEST_CONVERSATION_ID }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       run: |
         poetry run pytest app/tests
