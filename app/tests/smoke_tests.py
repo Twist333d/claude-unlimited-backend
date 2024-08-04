@@ -6,7 +6,7 @@ from flask import current_app
 from app import create_app
 from app.utils.auth import get_test_user_id
 
-BASE_URL = os.getenv('BASE_URL', 'http://localhost:5000')
+APP_BASE_URL = os.getenv('APP_BASE_URL', 'http://localhost:5000')
 
 def get_test_token():
     app = create_app()
@@ -17,27 +17,27 @@ def get_test_token():
         return "test_token"
 
 def test_health_check():
-    response = requests.get(f"{BASE_URL}/health")
+    response = requests.get(f"{APP_BASE_URL}/health")
     assert response.status_code == 200
 
 def test_conversations_list():
     token = get_test_token()
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_URL}/conversations", headers=headers)
+    response = requests.get(f"{APP_BASE_URL}/conversations", headers=headers)
     assert response.status_code == 200
 
 def test_chat_functionality():
     token = get_test_token()
     headers = {"Authorization": f"Bearer {token}"}
     data = {"message": "Hello, Claude!"}
-    response = requests.post(f"{BASE_URL}/chat", headers=headers, json=data)
+    response = requests.post(f"{APP_BASE_URL}/chat", headers=headers, json=data)
     assert response.status_code == 200
     assert "response" in response.json()
 
 def test_usage_stats():
     token = get_test_token()
     headers = {"Authorization": f"Bearer {token}"}
-    response = requests.get(f"{BASE_URL}/usage", headers=headers)
+    response = requests.get(f"{APP_BASE_URL}/usage", headers=headers)
     assert response.status_code == 200
 
 def run_all_smoke_tests():

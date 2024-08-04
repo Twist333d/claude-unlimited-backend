@@ -2,7 +2,7 @@
 
 #!/bin/bash
 
-API_URL="${BASE_URL:-http://localhost:5000}"
+API_URL="${APP_BASE_URL:-http://localhost:5000}"
 TOKEN=$(python -c "from app.tests.smoke_tests import get_test_token; print(get_test_token())")
 
 echo "Running sanity checks against $API_URL"

@@ -73,7 +73,7 @@ jobs:
     - name: Run staging tests
       env:
         APP_ENV: staging
-        BASE_URL: ${{ secrets.STAGING_URL }}
+        APP_BASE_URL: ${{ secrets.STAGING_URL }}
         TEST_USER_ID: ${{ secrets.STAGING_TEST_USER_ID }}
         TEST_CONVERSATION_ID: ${{ secrets.STAGING_TEST_CONVERSATION_ID }}
       run: |

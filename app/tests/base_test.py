@@ -15,7 +15,7 @@ class BaseTest:
 
     @pytest.fixture(scope='class')
     def base_url(self, app):
-        return app.config['BASE_URL']
+        return app.config['APP_BASE_URL']
 
     @pytest.fixture(scope='class')
     def test_user_id(self, app):
