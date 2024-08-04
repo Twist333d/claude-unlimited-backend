@@ -39,7 +39,7 @@ jobs:
         SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_STAGING_JWT_TOKEN }}
         TEST_USER_ID: ${{ secrets.STAGING_TEST_USER_ID }}
         TEST_CONVERSATION_ID: ${{ secrets.STAGING_TEST_CONVERSATION_ID }}
-        ANTHROPIC_API_KEY: ${{ secrets.ANTRHOPIC_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       run: |
         poetry run pytest app/tests
 
