@@ -17,6 +17,7 @@ def create_app(config_class=Config):
 
     logger.info("Initializing Flask application")
 
+
     logger.info("Initializing Supabase client")
 
     try:
