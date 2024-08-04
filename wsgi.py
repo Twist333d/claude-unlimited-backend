@@ -6,11 +6,11 @@ current_config = get_config()
 application = create_app()
 
 if __name__ == '__main__':
-    debug = current_config.DEBUG
-    env = current_config.ENV
+    debug = current_config.APP_DEBUG
+    env = current_config.APP_ENV
     log_level = current_config.LOG_LEVEL
     logger.info(f'Application started with the following settings: \n'
                 f'- Debug: {debug}, \n'
                 f'- Environment: {env}, \n'
                 f'- Log level: {log_level}.')
-    application.run(host='0.0.0.0', port=current_config.PORT, debug=debug)
+    application.run(host='0.0.0.0', port=current_config.APP_PORT, debug=debug)

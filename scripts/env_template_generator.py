@@ -14,23 +14,24 @@ def generate_env_template():
         print(f"{Fore.RED}✗ Error: .env file does not exist.{Style.RESET_ALL}")
         return
 
-    with open(env_file, 'r') as f:
-        env_contents = f.readlines()
-
-    template_lines = []
-    current_section = None
-    for line in env_contents:
-        line = line.strip()
-        if line.startswith('#'):
-            if line.startswith('# ') and line.endswith(':'):
-                current_section = line
-                template_lines.append(f"\n{line}\n")
-            else:
-                template_lines.append(f"{line}\n")
-        elif line:
-            key, value = line.split('=', 1)
-            comment = f"# {current_section[2:-1]} variable" if current_section else ""
-            template_lines.append(f"{key}= {comment}\n")
+    template_lines = [
+        "# APP SETUP\n",
+        "APP_ENV=\n",
+        "APP_DEBUG=\n",
+        "APP_PORT=\n",
+        "OS_TYPE=\n",
+        "\n",
+        "# ANTHROPIC SETUP\n",
+        "ANTHROPIC_API_KEY=\n",
+        "\n",
+        "# SUPABASE SETUP\n",
+        "SUPABASE_URL=\n",
+        "SUPABASE_KEY=\n",
+        "SUPABASE_JWT_SECRET=\n",
+        "\n",
+        "# CORS SETUP\n",
+        "CORS_ORIGINS=\n",
+    ]
 
     with open(env_template_file, 'w') as f:
         f.writelines(template_lines)
