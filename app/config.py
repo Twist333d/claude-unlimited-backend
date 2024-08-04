@@ -26,7 +26,7 @@ class Config:
     CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
 
     # Environment configuration
-    ENV = os.getenv('ENV', 'development') # default to production, unless there is an .env file
+    ENV = os.getenv('ENV', 'development') # default to development, unless there is an .env file
     DEBUG = ENV != 'production'
 
     # Different OS

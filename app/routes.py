@@ -3,8 +3,7 @@ import datetime
 import jwt
 from flask import Blueprint, request, jsonify, current_app
 from .services.chat_service import process_chat_request
-from .utils.database import (
-    increment_usage_stats, create_conversation, create_message,
+from .utils.database import (create_conversation, create_message,
     get_messages_for_conversation, get_user_conversations,
     update_conversation_last_message, archive_conversation,
     get_or_create_user_settings, update_user_settings, get_usage_stats
