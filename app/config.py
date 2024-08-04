@@ -13,7 +13,8 @@ class Config:
     CLAUDE_MODEL = "claude-3-sonnet-20240229"
     MAX_TOKENS = 4096
     MAX_HISTORY_TOKENS = 150000
-    PORT = int(os.getenv('PORT', 5001))
+    PORT = int(os.getenv('PORT', 5000))  # Consistently use 5000 as default
+    BASE_URL = os.getenv('BASE_URL', f'http://localhost:{PORT}')
 
     # Supabase keys
     SUPABASE_URL = os.getenv('SUPABASE_URL')
