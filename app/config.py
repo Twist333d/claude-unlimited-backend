@@ -19,7 +19,7 @@ class Config:
     MAX_HISTORY_TOKENS = 150000
 
     # API SETUP
-    BASE_URL = os.getenv('BASE_URL', f'http://localhost:{APP_PORT}')
+    APP_BASE_URL = os.getenv('APP_BASE_URL', f'http://localhost:{APP_PORT}')
 
     # SUPABASE SETUP
     SUPABASE_URL = os.getenv('SUPABASE_URL')

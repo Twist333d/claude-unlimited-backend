@@ -53,7 +53,7 @@ jobs:
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       run: |
-        git push https://heroku:$HEROKU_API_KEY@git.heroku.com/${{ secrets.HEROKU_STAGING_APP }}.git HEAD:main
+        git push https://heroku:$HEROKU_API_KEY@git.heroku.com/${{ secrets.HEROKU_STAGING_APP }}.git HEAD:refs/heads/main
 
   test-staging:
     needs: deploy-staging

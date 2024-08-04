@@ -19,6 +19,7 @@ claude-unlimited-backend/
             __init__.py
         tests/
             base_test.py
+            smoke_tests.py
             test_api.py
             __init__.py
         utils/
