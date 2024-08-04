@@ -46,6 +46,10 @@ class DevelopmentConfig(Config):
     DEBUG = True
     LOG_LEVEL = logging.DEBUG
 
+class TestConfig(Config):
+    TESTING = True
+    # Add any test-specific configurations here
+
 class StagingConfig(Config):
     ENV = 'staging'
     DEBUG = True
@@ -58,6 +62,7 @@ class ProductionConfig(Config):
 
 config = {
     'development': DevelopmentConfig,
+    'testing': TestConfig,
     'staging': StagingConfig,
     'production': ProductionConfig,
     'default': DevelopmentConfig

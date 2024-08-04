@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone,  timedelta
 
 import jwt
 from flask import Blueprint, request, jsonify, current_app
@@ -19,7 +19,7 @@ main = Blueprint('main', __name__)
 def list_user_conversations():
     logger.info("Entering list_user_conversations route")
     logger.info("Fetching list of conversations.")
-    user_id = get_user_id_from_request() or get_test_user_id()
+    user_id = get_user_id_from_request()
     conversations = get_user_conversations(user_id)
     return jsonify(conversations)
 
@@ -29,7 +29,7 @@ def list_user_conversations():
 @login_required
 def get_conversation_messages(conversation_id):
     logger.info(f"Fetching messages for conversation {conversation_id}")
-    user_id = get_user_id_from_request() or get_test_user_id()
+    user_id = get_user_id_from_request()
     limit = request.args.get('limit', 50, type=int)
     messages = get_messages_for_conversation(str(conversation_id), limit)
     return jsonify(messages)
@@ -38,7 +38,7 @@ def get_conversation_messages(conversation_id):
 @login_required
 def archive_conv(conversation_id):
     logger.info(f"Archiving conversation {conversation_id}")
-    user_id = get_user_id_from_request() or get_test_user_id()
+    user_id = get_user_id_from_request()
     archive = request.json.get('archive', True)
     result = archive_conversation(str(conversation_id), archive)
     return jsonify(result)
@@ -49,7 +49,7 @@ def archive_conv(conversation_id):
 def chat():
     logger.info("Entering chat route")
     logger.info(f"Received chat request: {request.json}")
-    user_id = get_user_id_from_request() or get_test_user_id()
+    user_id = get_user_id_from_request()
     data = request.json
     user_id = get_user_id_from_request()
     conversation_id = data.get('conversation_id')
@@ -128,7 +128,7 @@ def generate_test_token():
     if current_app.config['ENV'] != 'production':
         payload = {
             'sub': user_id,  # Your test user ID
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)
+            'exp': datetime.now(timezone.utc) + timedelta(days=1)
         }
         token = jwt.encode(payload, current_app.config['SUPABASE_JWT_SECRET'], algorithm='HS256')
         return jsonify({'token': token})

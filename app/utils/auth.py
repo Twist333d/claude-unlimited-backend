@@ -2,14 +2,14 @@ from flask import request, current_app
 from functools import wraps
 import jwt as pyjwt
 
+def get_test_user_id():
+    if current_app.config['ENV'] == 'development':
+        return "9ac4d55a-beb5-476a-8724-9cc3eb3aee5a" if current_app.config['OS_TYPE'] == 'PC' else "fbba4a13-b4bb-4b99-9118-1acec1b2d240"
+    return None
 
 def get_user_id_from_request():
-
-    # get the local user_id if on dev
     if current_app.config['ENV'] == 'development':
-        if current_app.config['OS_TYPE'] == 'PC':
-            return "9ac4d55a-beb5-476a-8724-9cc3eb3aee5a" # returns the PC user_id
-        return "fbba4a13-b4bb-4b99-9118-1acec1b2d240"  # returns the Mac user_id for testing
+        return get_test_user_id()
 
     auth_header = request.headers.get('Authorization')
     if not auth_header:
@@ -37,17 +37,4 @@ def login_required(f):
         if user_id is None:
             return {'error': 'Authentication required'}, 401
         return f(*args, **kwargs)
-
     return decorated_function
-
-
-# For local development
-def get_test_user_id():
-    if current_app.config['ENV'] == 'development':
-        return "fbba4a13-b4bb-4b99-9118-1acec1b2d240"  # Replace with a real Supabase user ID for testing
-    return None
-
-
-def get_test_token():
-    response = client.get('/generate_test_token')
-    return response.json['token']
