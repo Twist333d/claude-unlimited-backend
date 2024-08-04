@@ -37,6 +37,8 @@ jobs:
         SUPABASE_URL: ${{ secrets.SUPABASE_STAGING_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_STAGING_KEY }}
         SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_STAGING_JWT_TOKEN }}
+        STAGING_TEST_USER_ID: ${{ secrets.STAGING_TEST_USER_ID }}
+        STAGING_TEST_CONVERSATION_ID: ${{ secrets.STAGING_TEST_CONVERSATION_ID }}
       run: |
         poetry run pytest app/tests
 
@@ -71,5 +73,7 @@ jobs:
       env:
         ENV: staging
         BASE_URL: ${{ secrets.STAGING_URL }}
+        STAGING_TEST_USER_ID: ${{ secrets.STAGING_TEST_USER_ID }}
+        STAGING_TEST_CONVERSATION_ID: ${{ secrets.STAGING_TEST_CONVERSATION_ID }}
       run: |
         poetry run pytest app/tests

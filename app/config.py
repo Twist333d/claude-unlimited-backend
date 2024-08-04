@@ -66,8 +66,8 @@ class StagingConfig(Config):
     ENV = 'staging'
     DEBUG = True
     LOG_LEVEL = logging.DEBUG
-    TEST_USER_ID = '60ae0ff0-f46e-448f-b57c-f3ddfb00f107'
-    TEST_CONVERSATION_ID = '4455c4d7-82b3-4cbd-be08-831d60dc5fb1'
+    TEST_USER_ID = os.environ.get('STAGING_TEST_USER_ID', '60ae0ff0-f46e-448f-b57c-f3ddfb00f107')
+    TEST_CONVERSATION_ID = os.environ.get('STAGING_TEST_CONVERSATION_ID', '4455c4d7-82b3-4cbd-be08-831d60dc5fb1')
 
 class ProductionConfig(Config):
     ENV = 'production'
