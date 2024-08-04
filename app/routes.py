@@ -1,6 +1,7 @@
 from datetime import datetime, timezone,  timedelta
 
-import jwt
+import jwt as pyjwt
+from jwt.exceptions import InvalidKeyError  # Add this import
 from flask import Blueprint, request, jsonify, current_app
 from .services.chat_service import process_chat_request
 from .utils.database import (create_conversation, create_message,
@@ -120,7 +121,7 @@ def user_settings():
         return jsonify(updated_settings)
 
 
-
+"""
 @main.route('/generate_test_token', methods=['GET'])
 def generate_test_token():
     logger.info("Entering generate_test_token route")
@@ -156,4 +157,3 @@ def generate_test_token():
             logger.error(f"Error generating test token: {str(e)}")
             return jsonify({'error': f'Error generating token: {str(e)}'}), 500
     return jsonify({'error': 'Not available in production'}), 403
-"""
