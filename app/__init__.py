@@ -12,9 +12,11 @@ def create_app(config_class=Config):
     global supabase_client
     app = Flask(__name__)
     app.config.from_object(config_class)
+    logger.info(f"Loaded configuration: {type(app.config).__name__}")
     CORS(app)
 
     logger.info("Initializing Flask application")
+
 
     logger.info("Initializing Supabase client")
 
@@ -32,6 +34,8 @@ def create_app(config_class=Config):
 
     except Exception as e:
         logger.error(f"Failed to connect to Supabase: {str(e)}")
+        logger.error(f"Supabase URL: {url}")  # Don't log the full key for security reasons
+        logger.error(f"Supabase Key: {key[:5]}...{key[-5:] if key else ''}")
         # You might want to raise an exception here if Supabase connection is critical for your app
         raise RuntimeError(f"Failed to initialize Supabase: {str(e)}")
 

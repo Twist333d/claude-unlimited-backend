@@ -1,6 +1,7 @@
 from datetime import datetime, timezone,  timedelta
 
-import jwt
+import jwt as pyjwt
+from jwt.exceptions import InvalidTokenError, InvalidKeyError
 from flask import Blueprint, request, jsonify, current_app
 from .services.chat_service import process_chat_request
 from .utils.database import (create_conversation, create_message,
@@ -123,13 +124,20 @@ def user_settings():
 @main.route('/generate_test_token', methods=['GET'])
 def generate_test_token():
     logger.info("Entering generate_test_token route")
-    user_id = get_user_id_from_request()
+    user_id = get_test_user_id()
     logger.info(f"Generating test token for user {user_id}")
-    if current_app.config['ENV'] != 'production':
-        payload = {
-            'sub': user_id,  # Your test user ID
-            'exp': datetime.now(timezone.utc) + timedelta(days=1)
-        }
-        token = jwt.encode(payload, current_app.config['SUPABASE_JWT_SECRET'], algorithm='HS256')
-        return jsonify({'token': token})
+    if current_app.config['APP_ENV'] != 'production':
+        try:
+            payload = {
+                'sub': user_id,  # Your test user ID
+                'exp': datetime.now(timezone.utc) + timedelta(days=1)
+            }
+            jwt_secret = current_app.config['SUPABASE_JWT_SECRET']
+            if not isinstance(jwt_secret, str):
+                raise ValueError(f"SUPABASE_JWT_SECRET must be a string, got {type(jwt_secret)}")
+            token = pyjwt.encode(payload, jwt_secret, algorithm='HS256')
+            return jsonify({'token': token})
+        except (InvalidKeyError, ValueError) as e:
+            logger.error(f"Error generating test token: {str(e)}")
+            return jsonify({'error': f'Error generating token: {str(e)}'}), 500
     return jsonify({'error': 'Not available in production'}), 403

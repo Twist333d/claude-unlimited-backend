@@ -3,14 +3,16 @@ from functools import wraps
 import jwt as pyjwt
 
 def get_test_user_id():
-    if current_app.config['ENV'] == 'development':
-        return "9ac4d55a-beb5-476a-8724-9cc3eb3aee5a" if current_app.config['OS_TYPE'] == 'PC' else "fbba4a13-b4bb-4b99-9118-1acec1b2d240"
+    if current_app.config['APP_ENV'] in ['development', 'staging']:
+        return current_app.config['TEST_USER_ID']
     return None
 
 def get_user_id_from_request():
-    if current_app.config['ENV'] == 'development':
+    # For development and staging, use test user ID if we're running tests
+    if current_app.config['APP_ENV'] in ['development', 'staging'] and current_app.config.get('TESTING', False):
         return get_test_user_id()
 
+    # For all other cases (including production), use the auth header
     auth_header = request.headers.get('Authorization')
     if not auth_header:
         return None
