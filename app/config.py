@@ -62,15 +62,15 @@ class StagingConfig(Config):
     APP_ENV = 'staging'
     APP_DEBUG = True
     LOG_LEVEL = logging.DEBUG
-    TEST_USER_ID = os.environ.get('STAGING_TEST_USER_ID')
-    TEST_CONVERSATION_ID = os.environ.get('STAGING_TEST_CONVERSATION_ID')
+    TEST_USER_ID = os.environ.get('TEST_USER_ID')
+    TEST_CONVERSATION_ID = os.environ.get('TEST_CONVERSATION_ID')
 
 class ProductionConfig(Config):
     APP_ENV = 'production'
     APP_DEBUG = False
     LOG_LEVEL = logging.INFO
-    TEST_USER_ID = os.environ.get('PROD_TEST_USER_ID')
-    TEST_CONVERSATION_ID = os.environ.get('PROD_TEST_CONVERSATION_ID')
+    TEST_USER_ID = os.environ.get('TEST_USER_ID')
+    TEST_CONVERSATION_ID = os.environ.get('TEST_CONVERSATION_ID')
 
 config = {
     'development': DevelopmentConfig,

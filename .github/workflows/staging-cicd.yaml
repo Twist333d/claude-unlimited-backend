@@ -33,12 +33,12 @@ jobs:
         python -c "import jwt; print(jwt.__file__)"
     - name: Run tests
       env:
-        ENV: staging
+        APP_ENV: staging
         SUPABASE_URL: ${{ secrets.SUPABASE_STAGING_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_STAGING_KEY }}
         SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_STAGING_JWT_TOKEN }}
-        STAGING_TEST_USER_ID: ${{ secrets.STAGING_TEST_USER_ID }}
-        STAGING_TEST_CONVERSATION_ID: ${{ secrets.STAGING_TEST_CONVERSATION_ID }}
+        TEST_USER_ID: ${{ secrets.STAGING_TEST_USER_ID }}
+        TEST_CONVERSATION_ID: ${{ secrets.STAGING_TEST_CONVERSATION_ID }}
       run: |
         poetry run pytest app/tests
 
@@ -71,9 +71,9 @@ jobs:
         poetry install --no-interaction --no-ansi
     - name: Run staging tests
       env:
-        ENV: staging
+        APP_ENV: staging
         BASE_URL: ${{ secrets.STAGING_URL }}
-        STAGING_TEST_USER_ID: ${{ secrets.STAGING_TEST_USER_ID }}
-        STAGING_TEST_CONVERSATION_ID: ${{ secrets.STAGING_TEST_CONVERSATION_ID }}
+        TEST_USER_ID: ${{ secrets.STAGING_TEST_USER_ID }}
+        TEST_CONVERSATION_ID: ${{ secrets.STAGING_TEST_CONVERSATION_ID }}
       run: |
         poetry run pytest app/tests
