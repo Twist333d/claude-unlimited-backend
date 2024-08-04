@@ -12,23 +12,21 @@ class TestAPI(BaseTest):
         response = client.get(f'{base_url}/conversations', headers=headers)
         assert response.status_code == 200
 
-    def test_conversation_messages(self, client, base_url):
+    def test_conversation_messages(self, client, base_url, test_conversation_id):
         headers = self.get_headers(client)
-        conversation_id = "c69abff2-a41a-46ff-8c77-e617141765a3"
-        response = client.get(f'{base_url}/conversations/{conversation_id}/messages', headers=headers)
+        response = client.get(f'{base_url}/conversations/{test_conversation_id}/messages', headers=headers)
         assert response.status_code == 200
 
-    def test_archive_conversation(self, client, base_url):
+    def test_archive_conversation(self, client, base_url, test_conversation_id):
         headers = self.get_headers(client)
-        conversation_id = "c69abff2-a41a-46ff-8c77-e617141765a3"
         data = {"archive": True}
-        response = client.post(f'{base_url}/conversations/{conversation_id}/archive', headers=headers, json=data)
+        response = client.post(f'{base_url}/conversations/{test_conversation_id}/archive', headers=headers, json=data)
         assert response.status_code == 200
 
-    def test_chat(self, client, base_url):
+    def test_chat(self, client, base_url, test_conversation_id):
         headers = self.get_headers(client)
         data = {
-            "conversation_id": "c69abff2-a41a-46ff-8c77-e617141765a3",
+            "conversation_id": test_conversation_id,
             "message": "This is a test message"
         }
         response = client.post(f'{base_url}/chat', headers=headers, json=data)

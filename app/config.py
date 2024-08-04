@@ -38,6 +38,10 @@ class Config:
     LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     LOG_FILE = 'app.log'
 
+    # Environment-specific test data
+    TEST_USER_ID = os.getenv('TEST_USER_ID')
+    TEST_CONVERSATION_ID = os.getenv('TEST_CONVERSATION_ID')
+
     @classmethod
     def init_app(cls, app):
         pass
@@ -46,20 +50,31 @@ class DevelopmentConfig(Config):
     ENV = 'development'
     DEBUG = True
     LOG_LEVEL = logging.DEBUG
+    TEST_USER_ID = os.getenv('TEST_USER_ID', 'fbba4a13-b4bb-4b99-9118-1acec1b2d240' if os.getenv(
+        'OS_TYPE') != 'PC' else '9ac4d55a-beb5-476a-8724-9cc3eb3aee5a')
+    TEST_CONVERSATION_ID = os.getenv('TEST_CONVERSATION_ID', 'c69abff2-a41a-46ff-8c77-e617141765a3' if os.getenv(
+        'OS_TYPE') != 'PC' else 'ce4f00d4-928b-40bd-b71a-03ad623501ed')
 
 class TestConfig(Config):
     TESTING = True
-    # Add any test-specific configurations here
+    TEST_USER_ID = os.getenv('TEST_USER_ID', 'fbba4a13-b4bb-4b99-9118-1acec1b2d240' if os.getenv(
+        'OS_TYPE') != 'PC' else '9ac4d55a-beb5-476a-8724-9cc3eb3aee5a')
+    TEST_CONVERSATION_ID = os.getenv('TEST_CONVERSATION_ID', 'c69abff2-a41a-46ff-8c77-e617141765a3' if os.getenv(
+        'OS_TYPE') != 'PC' else 'ce4f00d4-928b-40bd-b71a-03ad623501ed')
 
 class StagingConfig(Config):
     ENV = 'staging'
     DEBUG = True
     LOG_LEVEL = logging.DEBUG
+    TEST_USER_ID = '60ae0ff0-f46e-448f-b57c-f3ddfb00f107'
+    TEST_CONVERSATION_ID = '4455c4d7-82b3-4cbd-be08-831d60dc5fb1'
 
 class ProductionConfig(Config):
     ENV = 'production'
     DEBUG = False
     LOG_LEVEL = logging.INFO
+    TEST_USER_ID = '51a3ad18-76cb-46e2-bda8-268c634550a2'
+    TEST_CONVERSATION_ID = 'e7c0daf8-90fc-44d6-bb03-30cb889dabcd'
 
 config = {
     'development': DevelopmentConfig,

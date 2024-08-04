@@ -17,6 +17,14 @@ class BaseTest:
     def base_url(self, app):
         return app.config['BASE_URL']
 
+    @pytest.fixture(scope='class')
+    def test_user_id(self, app):
+        return app.config['TEST_USER_ID']
+
+    @pytest.fixture(scope='class')
+    def test_conversation_id(self, app):
+        return app.config['TEST_CONVERSATION_ID']
+
     def get_headers(self, client):
         response = client.get('/generate_test_token')
         token = response.json['token']

@@ -6,6 +6,9 @@ claude-unlimited-backend/
     Procfile
     README.md
     wsgi.py
+    .pytest_cache/
+        .gitignore
+        README.md
     app/
         config.py
         routes.py
@@ -13,6 +16,10 @@ claude-unlimited-backend/
         services/
             anthropic_service.py
             chat_service.py
+            __init__.py
+        tests/
+            base_test.py
+            test_api.py
             __init__.py
         utils/
             auth.py
