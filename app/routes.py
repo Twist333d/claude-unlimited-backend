@@ -121,26 +121,10 @@ def user_settings():
         return jsonify(updated_settings)
 
 
-"""
 @main.route('/generate_test_token', methods=['GET'])
 def generate_test_token():
     logger.info("Entering generate_test_token route")
-    user_id = get_user_id_from_request()
-    logger.info(f"Generating test token for user {user_id}")
-    if current_app.config['APP_ENV'] != 'production':
-        payload = {
-            'sub': user_id,  # Your test user ID
-            'exp': datetime.now(timezone.utc) + timedelta(days=1)
-        }
-        token = jwt.encode(payload, current_app.config['SUPABASE_JWT_SECRET'], algorithm='HS256')
-        return jsonify({'token': token})
-    return jsonify({'error': 'Not available in production'}), 403
-
-"""
-@main.route('/generate_test_token', methods=['GET'])
-def generate_test_token():
-    logger.info("Entering generate_test_token route")
-    user_id = get_user_id_from_request()
+    user_id = get_test_user_id()
     logger.info(f"Generating test token for user {user_id}")
     if current_app.config['APP_ENV'] != 'production':
         try:

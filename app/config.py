@@ -80,6 +80,7 @@ config = {
     'default': DevelopmentConfig
 }
 
-def get_config():
-    env = os.getenv('APP_ENV', 'development')
-    return config.get(env, config['default'])
+def get_config(config_name=None):
+    if config_name is None:
+        config_name = os.getenv('APP_ENV', 'default')
+    return config.get(config_name, config['default'])
