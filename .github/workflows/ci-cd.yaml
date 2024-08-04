@@ -34,7 +34,7 @@ jobs:
         poetry install --no-interaction --no-ansi
     - name: Run tests
       run: |
-        pytest .\app\tests\
+        poetry run pytest app/tests
 
   deploy-staging:
     needs: test
@@ -68,7 +68,7 @@ jobs:
         ENV: staging
         BASE_URL: ${{ secrets.STAGING_URL }}
       run: |
-        pytest .\app\tests\
+        poetry run pytest app/tests
 
   deploy-production:
     needs: [test, test-staging]
@@ -102,4 +102,4 @@ jobs:
         ENV: production
         BASE_URL: ${{ secrets.PRODUCTION_URL }}
       run: |
-        pytest .\app\tests\
+        poetry run pytest app/tests
