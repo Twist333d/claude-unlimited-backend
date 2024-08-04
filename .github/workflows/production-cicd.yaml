@@ -34,6 +34,7 @@ jobs:
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_PROD_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_PROD_KEY }}
+        SUPABASE_JWT_TOKEN: ${{ secrets.SUPABASE_PROD_JWT_TOKEN }}
       run: |
         poetry run pytest app/tests
 
