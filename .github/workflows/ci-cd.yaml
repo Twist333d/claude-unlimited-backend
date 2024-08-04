@@ -1,0 +1,93 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - '*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Run tests
+      run: |
+        pytest tests/
+
+  deploy-staging:
+    needs: test
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Deploy to Heroku Staging
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: |
+        git push https://heroku:$HEROKU_API_KEY@git.heroku.com/${{ secrets.HEROKU_STAGING_APP }}.git HEAD:main
+
+  test-staging:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Run staging tests
+      env:
+        ENV: staging
+        BASE_URL: ${{ secrets.STAGING_URL }}
+      run: |
+        pytest tests/
+
+  deploy-production:
+    needs: [test, test-staging]
+    if: github.event.inputs.environment == 'production'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Deploy to Heroku Production
+      env:
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      run: |
+        git push https://heroku:$HEROKU_API_KEY@git.heroku.com/${{ secrets.HEROKU_PRODUCTION_APP }}.git HEAD:main
+
+  test-production:
+    needs: deploy-production
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Run production tests
+      env:
+        ENV: production
+        BASE_URL: ${{ secrets.PRODUCTION_URL }}
+      run: |
+        pytest tests/
