@@ -12,6 +12,7 @@ def create_app(config_class=Config):
     global supabase_client
     app = Flask(__name__)
     app.config.from_object(config_class)
+    logger.info(f"Loaded configuration: {type(app.config).__name__}")
     CORS(app)
 
     logger.info("Initializing Flask application")

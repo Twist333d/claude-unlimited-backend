@@ -1,7 +1,7 @@
 from datetime import datetime, timezone,  timedelta
 
 import jwt as pyjwt
-from jwt.exceptions import InvalidKeyError  # Add this import
+from jwt.exceptions import InvalidTokenError, InvalidKeyError
 from flask import Blueprint, request, jsonify, current_app
 from .services.chat_service import process_chat_request
 from .utils.database import (create_conversation, create_message,
@@ -151,7 +151,7 @@ def generate_test_token():
             jwt_secret = current_app.config['SUPABASE_JWT_SECRET']
             if not isinstance(jwt_secret, str):
                 raise ValueError(f"SUPABASE_JWT_SECRET must be a string, got {type(jwt_secret)}")
-            token = jwt.encode(payload, jwt_secret, algorithm='HS256')
+            token = pyjwt.encode(payload, jwt_secret, algorithm='HS256')
             return jsonify({'token': token})
         except (InvalidKeyError, ValueError) as e:
             logger.error(f"Error generating test token: {str(e)}")

@@ -1,7 +1,6 @@
 from flask import request, current_app
 from functools import wraps
 import jwt as pyjwt
-from jwt.exceptions import InvalidKeyError  # Add this import
 
 def get_test_user_id():
     if current_app.config['ENV'] == 'development':
