@@ -1,30 +1,24 @@
-# app/tests/smoke_tests.py
-
 import requests
-import os
-from datetime import datetime, timezone,  timedelta
-from flask import current_app
 from app import create_app
 from app.utils.auth import get_user_id_from_request
-import jwt
-
-def get_test_token():
-    app = create_app()
-    with app.app_context():
-        user_id = current_app.config['TEST_USER_ID']
-        payload = {
-            'sub': user_id,
-            'exp': datetime.now(timezone.utc) + timedelta(days=1)
-        }
-        return jwt.encode(payload, current_app.config['SUPABASE_JWT_SECRET'], algorithm='HS256')
 
 def run_smoke_tests():
     app = create_app()
     with app.app_context():
-        base_url = current_app.config['APP_BASE_URL']
-        token = get_test_token()
+        base_url = app.config['APP_BASE_URL']
 
-        headers = {"Authorization": f"Bearer {token}"}
+        # Create a test user
+        user = app.supabase.auth.sign_up({
+            'email': 'smoketest@example.com',
+            'password': 'smoketestpass123'
+        }).user
+
+        # Sign in to get the token
+        session = app.supabase.auth.sign_in_with_password({
+            'email': 'smoketest@example.com',
+            'password': 'smoketestpass123'
+        }).session
+        headers = {"Authorization": f"Bearer {session.access_token}"}
 
         def test_health_check():
             response = requests.get(f"{base_url}/health")
@@ -66,6 +60,9 @@ def run_smoke_tests():
         test_user_settings()
 
         print("All smoke tests passed successfully!")
+
+        # Clean up
+        app.supabase.auth.admin.delete_user(user.id)
 
 if __name__ == "__main__":
     run_smoke_tests()

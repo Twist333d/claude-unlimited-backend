@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv() # load the .env file
 
+
 class Config:
     # APP SETUP
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -27,7 +28,7 @@ class Config:
     SUPABASE_JWT_SECRET = os.getenv('SUPABASE_JWT_SECRET')
 
     # CORS SETUP
-    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000').split(',')
+    CORS_ORIGINS = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://localhost:3001,http://localhost:3002').split(',')
 
     # LOGGING SETUP
     LOG_LEVEL = logging.DEBUG if APP_DEBUG else logging.INFO

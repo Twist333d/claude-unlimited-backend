@@ -9,7 +9,7 @@ from .utils.database import (create_conversation, create_message,
     update_conversation_last_message, archive_conversation,
     get_or_create_user_settings, update_user_settings, get_usage_stats
 )
-from .utils.auth import login_required, get_user_id_from_request, get_test_user_id
+from .utils.auth import login_required, get_user_id_from_request
 from .utils.logger import logger
 
 
@@ -119,25 +119,3 @@ def user_settings():
         preferred_model = data.get('preferred_model')
         updated_settings = update_user_settings(user_id, custom_instructions, preferred_model)
         return jsonify(updated_settings)
-
-
-@main.route('/generate_test_token', methods=['GET'])
-def generate_test_token():
-    logger.info("Entering generate_test_token route")
-    user_id = get_test_user_id()
-    logger.info(f"Generating test token for user {user_id}")
-    if current_app.config['APP_ENV'] != 'production':
-        try:
-            payload = {
-                'sub': user_id,  # Your test user ID
-                'exp': datetime.now(timezone.utc) + timedelta(days=1)
-            }
-            jwt_secret = current_app.config['SUPABASE_JWT_SECRET']
-            if not isinstance(jwt_secret, str):
-                raise ValueError(f"SUPABASE_JWT_SECRET must be a string, got {type(jwt_secret)}")
-            token = pyjwt.encode(payload, jwt_secret, algorithm='HS256')
-            return jsonify({'token': token})
-        except (InvalidKeyError, ValueError) as e:
-            logger.error(f"Error generating test token: {str(e)}")
-            return jsonify({'error': f'Error generating token: {str(e)}'}), 500
-    return jsonify({'error': 'Not available in production'}), 403
