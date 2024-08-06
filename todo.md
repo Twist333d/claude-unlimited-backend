@@ -1,2 +1,3 @@
-- Migrate the database to staging and production
-- Increase the max tokens to 8196 for Sonnet, using headers
+- Fix the Auth issues
+- Re-factor the tests -> make sure all routes are tested
+- Add test request to the database starting

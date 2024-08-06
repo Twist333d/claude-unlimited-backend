@@ -28,9 +28,9 @@ def create_app(config_class=Config):
         app.supabase = supabase_client
 
         # Test the connection without relying on existing data
-        test_response = app.supabase.table('conversations').select('count').execute()
-        row_count = test_response.count
-        logger.info(f"Successfully connected to Supabase. Conversations table has {row_count} rows.")
+        #test_response = app.supabase.table('conversations').select('count').execute()
+        #row_count = test_response.count
+        #logger.info(f"Successfully connected to Supabase. Conversations table has {row_count} rows.")
 
     except Exception as e:
         logger.error(f"Failed to connect to Supabase: {str(e)}")
