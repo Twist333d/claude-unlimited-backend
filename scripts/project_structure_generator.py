@@ -39,7 +39,7 @@ def generate_structure(root_dir, output_file, include_patterns=None, important_p
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate project structure')
     parser.add_argument('--root', default=None, help='Root directory of the project')
-    parser.add_argument('--output', default='project_structure.txt', help='Output file name')
+    parser.add_argument('--output', default='backend_directory_structure.txt', help='Output file name')
     args = parser.parse_args()
 
     script_dir = Path(__file__).parent

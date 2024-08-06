@@ -8,7 +8,7 @@ def generate_env_template():
     script_dir = Path(__file__).parent
     project_root = script_dir.parent
     env_file = project_root / '.env'
-    env_template_file = project_root / '.env.template'
+    env_template_file = project_root / '.env.example'
 
     if not env_file.exists():
         print(f"{Fore.RED}✗ Error: .env file does not exist.{Style.RESET_ALL}")
@@ -37,7 +37,7 @@ def generate_env_template():
         f.writelines(template_lines)
 
     relative_path = env_template_file.relative_to(project_root)
-    print(f"{Fore.GREEN}✓ .env.template has been generated/updated at ./{relative_path}{Style.RESET_ALL}")
+    print(f"{Fore.GREEN}✓ .env.example has been generated/updated at ./{relative_path}{Style.RESET_ALL}")
 
 if __name__ == "__main__":
     generate_env_template()
