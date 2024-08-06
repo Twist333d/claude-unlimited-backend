@@ -19,13 +19,15 @@ class BaseTest:
 
     @pytest.fixture(scope='function')
     def auth_token(self, supabase_client):
-        email = os.environ.get('TEST_USER_EMAIL', 'test@example.com')
-        password = os.environ.get('TEST_USER_PASSWORD', 'test_password')
+        email = os.environ.get('TEST_USER_EMAIL')
+        password = os.environ.get('TEST_USER_PASSWORD')
         if not email or not password:
             pytest.skip("Test user credentials not set")
-        response = supabase_client.auth.sign_in_with_password({"email": email, "password": password})
-        yield response.session.access_token
-        # No need to sign out as we're using a persistent test user
+        try:
+            response = supabase_client.auth.sign_in_with_password({"email": email, "password": password})
+            return response.session.access_token
+        except Exception as e:
+            pytest.fail(f"Failed to sign in test user: {str(e)}")
 
     @pytest.fixture(scope='function')
     def auth_headers(self, auth_token):
