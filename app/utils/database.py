@@ -20,15 +20,18 @@ def supabase_operation(f):
 # CONVERSATION OPERATIONS
 @supabase_operation
 def create_conversation(user_id: str, title: str):
-    logger.info(f"Creating new conversation for user {user_id}")
+
     conversation_id = str(uuid.uuid4())
+    logger.info(f"Creating new conversation for user {user_id} and title: {title}, with conversation id: {conversation_id}")
 
     try:
-        response = supabase_client.table('conversations').insert({
+        insert_data = {
             "id": conversation_id,
             "user_id": user_id,
             "title": title,
-        }).execute()
+        }
+        logger.info(f"Attempting to insert conversation with data: {insert_data}")
+        response = supabase_client.table('conversations').insert(insert_data).execute()
 
         if response.data:
             created_conversation = response.data[0]

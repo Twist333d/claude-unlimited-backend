@@ -51,25 +51,21 @@ def chat():
     logger.info("Entering chat route")
     logger.info(f"Received chat request: {request.json}")
     user_id = get_user_id_from_request()
-    logger.info(f"Authenticated user ID: {user_id}")
     data = request.json
-    user_id = get_user_id_from_request()
     conversation_id = data.get('conversation_id')
     message = data.get('message', '')
 
     if not message:
-        logger.warning("No message to chat")
+        logger.warning("No message received for chat request")
         return jsonify({"error": "No message provided"}), 400
 
 
     if not conversation_id:
-        logger.info(f"Creating new conversation for user: {user_id}")
         # Use the first 30 characters of the message as the title
         title = message[:30] + "..." if len(message) > 30 else message
         # Create a new conversation
         conversation_id = create_conversation(user_id, title)
-    else:
-        conversation_id = str(conversation_id)  # Ensure it's a string
+        logger.info(f"Created new conversation {conversation_id}")
 
 
     try:
