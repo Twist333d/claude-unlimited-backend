@@ -37,9 +37,9 @@ jobs:
         SUPABASE_URL: ${{ secrets.SUPABASE_STAGING_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_STAGING_KEY }}
         SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_STAGING_JWT_TOKEN }}
-        TEST_USER_ID: ${{ secrets.STAGING_TEST_USER_ID }}
-        TEST_CONVERSATION_ID: ${{ secrets.STAGING_TEST_CONVERSATION_ID }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+        TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
       run: |
         poetry run pytest app/tests
 
@@ -84,8 +84,8 @@ jobs:
         SUPABASE_URL: ${{ secrets.SUPABASE_STAGING_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_STAGING_KEY }}
         SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_STAGING_JWT_TOKEN }}
-        TEST_USER_ID: ${{ secrets.STAGING_TEST_USER_ID }}
-        TEST_CONVERSATION_ID: ${{ secrets.STAGING_TEST_CONVERSATION_ID }}
         ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+        TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
       run: |
         poetry run pytest app/tests

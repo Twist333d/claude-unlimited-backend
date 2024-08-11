@@ -26,3 +26,19 @@ def login_required(f):
             return {'error': 'Authentication required'}, 401
         return f(*args, **kwargs)
     return decorated_function
+
+def get_or_create_user(supabase_client, email, password):
+    # Try to sign in
+    try:
+        response = supabase_client.auth.sign_in_with_password({
+            "email": email,
+            "password": password
+        })
+        return response.user, response.session.access_token
+    except:
+        # If sign in fails, try to sign up
+        response = supabase_client.auth.sign_up({
+            "email": email,
+            "password": password
+        })
+        return response.user, response.session.access_token

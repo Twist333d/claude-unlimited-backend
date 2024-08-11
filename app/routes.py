@@ -13,7 +13,18 @@ from .utils.auth import login_required, get_user_id_from_request
 from .utils.logger import logger
 
 
+
+
 main = Blueprint('main', __name__)
+
+@main.route('/health', methods=['GET'])
+def health_check():
+    try:
+        # Check Supabase connection
+        current_app.supabase.table('conversations').select("count", count="exact").limit(1).execute()
+        return jsonify({"status": "healthy", "database": "connected"}), 200
+    except Exception as e:
+        return jsonify({"status": "unhealthy", "database": "disconnected", "error": str(e)}), 500
 
 @main.route('/conversations', methods=['GET'])
 @login_required
