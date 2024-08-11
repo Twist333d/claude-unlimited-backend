@@ -123,8 +123,7 @@ def update_conversation_last_message(conversation_id: str):
 VALID_ROLES =['user', 'assistant', 'system']
 
 @supabase_operation
-def create_message(conversation_id: str, role: str, content: str, tokens: int = None):
-
+def create_message(conversation_id: str, user_id: str, role: str, content: str, tokens: int = None):
     if role not in VALID_ROLES:
         raise ValueError(f"Invalid role. Must be one of {VALID_ROLES}")
 
@@ -133,6 +132,7 @@ def create_message(conversation_id: str, role: str, content: str, tokens: int = 
     message_data = {
         "id": str(uuid.uuid4()),
         "conversation_id": conversation_id,
+        "user_id": user_id,
         "role": role,
         "content": content,
         "created_at": datetime.now(timezone.utc).isoformat(),

@@ -51,6 +51,7 @@ def chat():
     logger.info("Entering chat route")
     logger.info(f"Received chat request: {request.json}")
     user_id = get_user_id_from_request()
+    logger.info(f"Authenticated user ID: {user_id}")
     data = request.json
     user_id = get_user_id_from_request()
     conversation_id = data.get('conversation_id')
@@ -62,9 +63,10 @@ def chat():
 
 
     if not conversation_id:
-        logger.info("No conversation ID provided, creating a new conversation")
+        logger.info(f"Creating new conversation for user: {user_id}")
         # Use the first 30 characters of the message as the title
         title = message[:30] + "..." if len(message) > 30 else message
+        # Create a new conversation
         conversation_id = create_conversation(user_id, title)
     else:
         conversation_id = str(conversation_id)  # Ensure it's a string
@@ -72,13 +74,15 @@ def chat():
 
     try:
         # Save new user message
-        create_message(conversation_id, 'user', message)
+        # Now we have a conversation_id, create the message
+        message_id = create_message(conversation_id, user_id, 'user', message)
+        logger.info(f"Created message for user: {user_id}, conversation: {conversation_id}")
 
         # Process the chat request
         result = process_chat_request(user_id, conversation_id, message)
 
         # Save the assistant's response
-        create_message(conversation_id, 'assistant', result['response'])
+        assistant_message_id = create_message(conversation_id, user_id, 'assistant', result['response'])
 
         # Update conversation's last_message_at
         update_conversation_last_message(conversation_id)
@@ -87,7 +91,12 @@ def chat():
         result['conversation_id'] = conversation_id
 
         logger.info("Chat request processed successfully")
-        return jsonify(result)
+        return jsonify({
+            "conversation_id": conversation_id,
+            "message_id": message_id,
+            "assistant_message_id": assistant_message_id,
+            "response": result['response']
+        })
     except Exception as e:
         logger.error(f"Error in chat request: {str(e)}")
         return jsonify({"error": str(e)}), 500
