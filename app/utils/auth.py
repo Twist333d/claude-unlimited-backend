@@ -27,6 +27,7 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 def get_or_create_user(supabase_client, email, password):
     # Try to sign in
     try:
