@@ -62,6 +62,7 @@ def chat():
     logger.info("Entering chat route")
     logger.info(f"Received chat request: {request.json}")
     user_id = get_user_id_from_request()
+    logger.info(f"user_id: {user_id}")
     data = request.json
     conversation_id = data.get('conversation_id')
     message = data.get('message', '')
